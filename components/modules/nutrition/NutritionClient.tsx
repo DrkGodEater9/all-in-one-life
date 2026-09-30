@@ -1,12 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger, toast } from "@/components/ui";
+import dynamic from "next/dynamic";
+import { Skeleton, Tabs, TabsContent, TabsList, TabsTrigger, toast } from "@/components/ui";
 import { api, qs } from "@/lib/api";
 import { toDateKey } from "@/lib/utils";
 import { NutritionHeader } from "./NutritionHeader";
 import { TodayTab } from "./TodayTab";
-import { WeightTab } from "./WeightTab";
+// Gráfica de peso con recharts: fuera del bundle inicial de /nutrition.
+const WeightTab = dynamic(() => import("./WeightTab").then((m) => m.WeightTab), {
+  ssr: false,
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
 import { WaterTab } from "./WaterTab";
 import type {
   DayLog,

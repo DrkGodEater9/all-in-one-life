@@ -24,8 +24,6 @@ async function run(
 describe("middleware — rutas públicas sin sesión", () => {
   it("deja pasar POST /api/auth/login sin sesión (si no, nadie podría autenticarse)", async () => {
     const res = await run("/api/auth/login", null);
-    // Sin este caso público, el middleware corta con 401 antes de llegar al
-    // handler y el login queda permanentemente roto.
     expect(res.status).not.toBe(401);
   });
 
@@ -34,10 +32,12 @@ describe("middleware — rutas públicas sin sesión", () => {
     expect(res.status).not.toBe(401);
   });
 
-  it("sigue bloqueando cualquier otra ruta /api sin sesión", async () => {
+  it("no verifica la sesión de las rutas /api: lo hace withAuth en el handler (una sola ida a Supabase, no dos)", async () => {
     const res = await run("/api/finance/balance", null);
-    expect(res.status).toBe(401);
-    await expect(res.json()).resolves.toMatchObject({ error: "No autenticado" });
+    // El middleware ya no corta con 401 aquí; la ruta se protege sola. Lo
+    // que importa es que NO gastó un getUser() de red extra.
+    expect(updateSessionMock).not.toHaveBeenCalled();
+    expect(res.status).not.toBe(307);
   });
 
   it("redirige a /login una página protegida sin sesión", async () => {
@@ -50,11 +50,6 @@ describe("middleware — rutas públicas sin sesión", () => {
     const res = await run("/api/cron/reminders", null);
     expect(res.status).not.toBe(401);
     expect(updateSessionMock).not.toHaveBeenCalled();
-  });
-
-  it("con sesión, /api/auth/login sigue respondiendo normal (no debe redirigir como /login)", async () => {
-    const res = await run("/api/auth/login", { id: "u1" });
-    expect(res.status).not.toBe(307);
   });
 
   it("con sesión, redirige fuera de /login", async () => {
@@ -98,11 +93,6 @@ describe("middleware — rutas públicas sin sesión", () => {
     // token viejo, ya rotado por Supabase, y la siguiente vez que se
     // intentara usar fallaba: sesión cerrada sola, en silencio.
     const cookie = { name: "sb-access-token", value: "refrescada-123" };
-
-    it("sobrevive en el 401 de una API sin sesión", async () => {
-      const res = await run("/api/finance/balance", null, { refreshedCookie: cookie });
-      expect(res.cookies.get("sb-access-token")?.value).toBe("refrescada-123");
-    });
 
     it("sobrevive en el redirect a /login", async () => {
       const res = await run("/finance", null, { refreshedCookie: cookie });

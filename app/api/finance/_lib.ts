@@ -46,9 +46,17 @@ export async function ensureSources(): Promise<Record<SourceName, FinanceSource>
   };
 }
 
-/** Valida que el `sourceId` recibido corresponda a una fuente real. */
+/**
+ * Valida que el `sourceId` recibido corresponda a una fuente real.
+ *
+ * Una sola query: antes llamaba a `ensureSources()` (un findMany sobre la
+ * tabla, más posibles creates) y ACTO SEGUIDO un findUnique del mismo id —
+ * dos viajes a la base en cada POST de transacción y de deuda para validar
+ * un id que el caller va a usar igual. El sembrado de las dos fuentes vive
+ * en el seed y en `/finance/balance` (que sí necesita crearlas si faltan);
+ * aquí basta con comprobar que la fila existe.
+ */
 export async function assertSourceExists(sourceId: number): Promise<FinanceSource> {
-  await ensureSources();
   const source = await prisma.financeSource.findUnique({ where: { id: sourceId } });
   if (!source) throw badRequest("La fuente indicada no existe");
   return source;

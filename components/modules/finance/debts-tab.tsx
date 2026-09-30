@@ -13,17 +13,13 @@ import {
   Skeleton,
   toast,
 } from "@/components/ui";
-import { formatDateLabel, sourceLabel } from "./finance-utils";
+import { debtProgress, formatDateLabel, pendingOf, sourceLabel } from "./finance-utils";
 import { DebtDetailDialog } from "./debt-detail-dialog";
 import type { Debt } from "./types";
 
 export interface DebtsTabProps {
   reloadKey: number;
   onChanged: () => void;
-}
-
-function pendingOf(debt: Debt) {
-  return Math.round((debt.amount - debt.amountPaid) * 100) / 100;
 }
 
 interface DebtSectionProps {
@@ -85,7 +81,7 @@ function DebtSection({
             <ul className="divide-y divide-border">
               {debts.map((debt) => {
                 const pending = pendingOf(debt);
-                const progress = debt.amount > 0 ? (debt.amountPaid / debt.amount) * 100 : 0;
+                const progress = debtProgress(debt);
                 return (
                   <li key={debt.id}>
                     <button

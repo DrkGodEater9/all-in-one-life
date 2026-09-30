@@ -1,5 +1,5 @@
 {
-  "regions": ["pdx1"],
+  "regions": ["gru1"],
   "crons": [
     {
       "path": "/api/cron/reminders",

@@ -5,6 +5,7 @@ import { CreditCard, Download } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
 import { Card, EmptyState, Progress, Skeleton, Stat, toast } from "@/components/ui";
+import { creditLineProgress } from "./finance-utils";
 import { CreditLineDetailDialog } from "./credit-line-detail-dialog";
 import type { CreditLine } from "./types";
 
@@ -60,7 +61,7 @@ export function CreditLinesTab({ reloadKey, onChanged }: CreditLinesTabProps) {
     <>
       <div className="grid gap-3 sm:grid-cols-2">
         {lines.map((line) => {
-          const progress = line.limit ? (line.used / line.limit) * 100 : 0;
+          const progress = creditLineProgress(line);
           return (
             <Card key={line.id} className="p-4">
               <button

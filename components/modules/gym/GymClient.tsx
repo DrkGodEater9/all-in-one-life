@@ -1,12 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger, toast } from "@/components/ui";
+import dynamic from "next/dynamic";
+import { Skeleton, Tabs, TabsContent, TabsList, TabsTrigger, toast } from "@/components/ui";
 import { api, ApiClientError } from "@/lib/api";
 import { RoutinesTab } from "@/components/modules/gym/RoutinesTab";
 import { WorkoutsTab } from "@/components/modules/gym/WorkoutsTab";
-import { ProgressTab } from "@/components/modules/gym/ProgressTab";
-import { MeasurementsTab } from "@/components/modules/gym/MeasurementsTab";
+// Ambas pestañas dibujan con recharts (~100 kB). Se cargan solo cuando el
+// usuario entra a ellas, en vez de pesar en la carga inicial de /gym.
+const ProgressTab = dynamic(
+  () => import("@/components/modules/gym/ProgressTab").then((m) => m.ProgressTab),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full" /> }
+);
+const MeasurementsTab = dynamic(
+  () => import("@/components/modules/gym/MeasurementsTab").then((m) => m.MeasurementsTab),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full" /> }
+);
 import type { Routine } from "@/components/modules/gym/types";
 
 export function GymClient() {

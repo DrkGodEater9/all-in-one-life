@@ -22,7 +22,7 @@ import {
   toast,
 } from "@/components/ui";
 import { Segmented } from "./segmented";
-import { formatDateLabel } from "./finance-utils";
+import { creditLineProgress, formatDateLabel } from "./finance-utils";
 import type { CreditLineDetail, CreditMovement } from "./types";
 
 const schema = z.object({
@@ -119,7 +119,7 @@ export function CreditLineDetailDialog({
     }
   }
 
-  const progress = line?.limit ? (line.used / line.limit) * 100 : 0;
+  const progress = line ? creditLineProgress(line) : 0;
 
   return (
     <Dialog open={creditLineId !== null} onOpenChange={onOpenChange}>

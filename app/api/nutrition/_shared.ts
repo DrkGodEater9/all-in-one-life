@@ -144,16 +144,29 @@ export function isIncomplete(per100g: Per100g) {
 
 export const EMPTY_MACROS: Macros = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
 
+/**
+ * Acumula en crudo y redondea UNA sola vez al final. Antes redondeaba en
+ * cada paso del reduce, lo que arrastra error de redondeo con muchos items
+ * y además daba totales distintos de los que calculaba `history/route.ts`
+ * (que sí acumulaba en crudo): el mismo día podía mostrar cifras
+ * ligeramente distintas según la pantalla.
+ */
 export function sumMacros(items: Array<Partial<Macros>>): Macros {
-  return items.reduce<Macros>(
+  const total = items.reduce<Macros>(
     (acc, it) => ({
-      kcal: round2(acc.kcal + (it.kcal ?? 0)),
-      proteinG: round2(acc.proteinG + (it.proteinG ?? 0)),
-      carbsG: round2(acc.carbsG + (it.carbsG ?? 0)),
-      fatG: round2(acc.fatG + (it.fatG ?? 0)),
+      kcal: acc.kcal + (it.kcal ?? 0),
+      proteinG: acc.proteinG + (it.proteinG ?? 0),
+      carbsG: acc.carbsG + (it.carbsG ?? 0),
+      fatG: acc.fatG + (it.fatG ?? 0),
     }),
     { ...EMPTY_MACROS }
   );
+  return {
+    kcal: round2(total.kcal),
+    proteinG: round2(total.proteinG),
+    carbsG: round2(total.carbsG),
+    fatG: round2(total.fatG),
+  };
 }
 
 // ─────────────────────────────────────────

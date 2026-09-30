@@ -1,16 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-// "/login" es la página; "/api/auth/login" y "/api/auth/logout" son las
-// rutas que la respaldan y por definición se llaman sin sesión todavía
-// (o con una ya inválida). Sin esto el middleware las corta con 401 antes
-// de que el handler se ejecute y el login queda permanentemente roto.
+// Páginas que se pueden ver sin sesión. Las rutas de API ya no necesitan
+// figurar aquí: desde que el middleware no las intercepta, cada una se
+// protege sola con `withAuth`/`withRoute` (ver el comentario abajo).
 //
-// Match exacto, no `startsWith`: ninguna de estas rutas tiene ni debería
-// tener sub-rutas, y `startsWith` haría pública por accidente cualquier
-// ruta futura que empiece igual (`/api/auth/login/lo-que-sea`,
-// `/login-analytics`) sin que nadie se dé cuenta.
-const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/auth/login", "/api/auth/logout"];
+// Match exacto, no `startsWith`: `startsWith` haría pública por accidente
+// cualquier ruta futura que empiece igual (`/login-analytics`) sin que
+// nadie se dé cuenta.
+const PUBLIC_PATHS = ["/login", "/auth/callback"];
 const isPublicPath = (pathname: string) => PUBLIC_PATHS.includes(pathname);
 
 /**
@@ -86,13 +84,32 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
+  /**
+   * Las rutas de API NO pasan por la verificación de sesión del middleware:
+   * ya la hacen ellas mismas con `withAuth` (que llama a `requireUser()`),
+   * y `supabase.auth.getUser()` es un viaje de red real contra el servidor
+   * de auth de Supabase, no una validación local del JWT. Verificar aquí
+   * Y en el handler significaba DOS viajes por cada llamada a la API: una
+   * pantalla que dispara 3 peticiones pagaba 6. Con la sesión verificada
+   * una sola vez, en el handler, la latencia por request cae a la mitad
+   * sin perder nada de seguridad: las 64 rutas de `app/api/**` usan
+   * `withAuth` o `withRoute`, ninguna queda sin guardia.
+   *
+   * El refresh del token tampoco se pierde: en un Route Handler (a
+   * diferencia de un Server Component) el cliente de Supabase SÍ puede
+   * escribir cookies, así que `createClient()` de `lib/supabase/server.ts`
+   * persiste el token rotado por su cuenta.
+   */
+  if (pathname.startsWith("/api")) {
+    const res = NextResponse.next();
+    res.headers.set("Content-Security-Policy", CSP);
+    return res;
+  }
+
   const { response, user } = await updateSession(request);
   const isPublic = isPublicPath(pathname);
 
   if (!user && !isPublic) {
-    if (pathname.startsWith("/api")) {
-      return finish(NextResponse.json({ error: "No autenticado" }, { status: 401 }), response);
-    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

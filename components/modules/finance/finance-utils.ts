@@ -70,3 +70,27 @@ export function dateKeyMonthsAgo(months: number, now = new Date()): string {
     d.getDate()
   ).padStart(2, "0")}`;
 }
+
+// ─────────────────────────────────────────
+// Cálculos compartidos
+//
+// Estaban duplicados literalmente entre la tarjeta y el diálogo de detalle
+// de cada cosa (deudas y créditos). Si la regla cambia —por ejemplo topar
+// el progreso en 100% cuando hay sobrepago— ahora se cambia en un solo
+// sitio en vez de tener que acordarse de los dos.
+// ─────────────────────────────────────────
+
+/** Lo que falta por pagar de una deuda, redondeado a centavos. */
+export function pendingOf(debt: { amount: number; amountPaid: number }): number {
+  return Math.round((debt.amount - debt.amountPaid) * 100) / 100;
+}
+
+/** % pagado de una deuda, para la barra de progreso. */
+export function debtProgress(debt: { amount: number; amountPaid: number }): number {
+  return debt.amount > 0 ? (debt.amountPaid / debt.amount) * 100 : 0;
+}
+
+/** % de cupo usado de una línea de crédito. Sin cupo definido, 0. */
+export function creditLineProgress(line: { used: number; limit: number | null }): number {
+  return line.limit ? (line.used / line.limit) * 100 : 0;
+}

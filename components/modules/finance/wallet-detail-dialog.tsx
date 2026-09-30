@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,8 +42,18 @@ import {
   formatMonthLabel,
   signedMoney,
 } from "./finance-utils";
-import { buildSingleSourceSeries, SingleBalanceChart } from "./balance-chart";
-import { ExpenseDonut } from "./expense-donut";
+import { buildSingleSourceSeries } from "./chart-data";
+
+// recharts pesa ~100 kB y solo hace falta cuando este modal está abierto.
+// Cargándolo con `dynamic` sale del bundle inicial de /finance.
+const SingleBalanceChart = dynamic(
+  () => import("./balance-chart").then((m) => m.SingleBalanceChart),
+  { ssr: false, loading: () => <Skeleton className="h-40 w-full" /> }
+);
+const ExpenseDonut = dynamic(
+  () => import("./expense-donut").then((m) => m.ExpenseDonut),
+  { ssr: false, loading: () => <Skeleton className="h-40 w-full" /> }
+);
 import type { MonthlySummary, Transaction } from "./types";
 
 /** Forma de `balance.sources`, sin `createdAt` (no hace falta aquí). */

@@ -23,7 +23,7 @@ import {
   toast,
 } from "@/components/ui";
 import { DIRECTION_LABELS } from "./constants";
-import { formatDateLabel, sourceLabel } from "./finance-utils";
+import { debtProgress, formatDateLabel, pendingOf, sourceLabel } from "./finance-utils";
 import type { Debt, DebtPayment } from "./types";
 
 const schema = z.object({
@@ -53,8 +53,8 @@ export function DebtDetailDialog({ debt, onOpenChange, onPaid }: DebtDetailDialo
   const { errors, isSubmitting } = form.formState;
 
   const debtId = debt?.id ?? null;
-  const pending = debt ? Math.round((debt.amount - debt.amountPaid) * 100) / 100 : 0;
-  const progress = debt && debt.amount > 0 ? (debt.amountPaid / debt.amount) * 100 : 0;
+  const pending = debt ? pendingOf(debt) : 0;
+  const progress = debt ? debtProgress(debt) : 0;
 
   React.useEffect(() => {
     if (debtId === null) return;
