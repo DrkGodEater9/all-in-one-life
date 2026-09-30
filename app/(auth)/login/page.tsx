@@ -48,7 +48,7 @@ function LoginForm() {
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8">
-          <h1 className="font-serif text-4xl leading-none">Personal OS</h1>
+          <h1 className="text-4xl leading-none">Personal OS</h1>
           <p className="mt-2 text-sm text-text-2">
             Finanzas, salud, productividad y proyectos en un solo lugar.
           </p>

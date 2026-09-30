@@ -17,7 +17,13 @@ const DropdownMenuContent = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         "z-50 min-w-[10rem] overflow-hidden rounded-md border border-border bg-surface p-1 text-text",
-        "data-[state=open]:animate-scale-in",
+        // Solo fade, sin scale: Radix posiciona esto con su propio
+        // `transform: translate3d(...)` calculado en runtime; una animación
+        // de `transform` (aunque sea solo scale) lo pisa durante los 150ms
+        // y el menú "salta" a su sitio correcto al terminar. Mismo bug que
+        // se vio en Dialog, ver el comentario de dialog-scale-in en
+        // tailwind.config.ts.
+        "data-[state=open]:animate-fade-in",
         className
       )}
       {...props}

@@ -13,7 +13,7 @@ type State =
   | { status: "error"; message: string }
   | { status: "ready"; data: Balance };
 
-/** Widget 1: saldo daily/savings, en Instrument Serif grande lado a lado (regla 4). */
+/** Widget 1: saldo daily/savings, en Instrument Serif grande lado a lado -retirada del sistema, ver stat.tsx-. */
 export function BalanceWidget() {
   const [state, setState] = React.useState<State>({ status: "loading" });
 

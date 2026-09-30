@@ -178,7 +178,7 @@ export function ActiveWorkout({ workoutId }: ActiveWorkoutProps) {
                 Gym
               </Link>
             </Button>
-            <h2 className="truncate font-serif text-2xl leading-tight text-text">
+            <h2 className="truncate text-2xl leading-tight text-text">
               {workout.routineName}
             </h2>
             <p className="mt-0.5 text-xs text-text-2">{formatDate(workout.date)}</p>

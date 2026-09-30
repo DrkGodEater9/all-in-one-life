@@ -69,7 +69,10 @@ const SelectContent = React.forwardRef<
       position={position}
       className={cn(
         "relative z-50 max-h-72 min-w-[8rem] overflow-hidden rounded-md border border-border bg-surface text-text",
-        "data-[state=open]:animate-scale-in",
+        // Solo fade, no scale: ver el comentario equivalente en dropdown-menu.tsx.
+        // Aquí es más notorio todavía porque además hay un translate-y estático
+        // (data-[side=...]) que una animación de transform también pisaría.
+        "data-[state=open]:animate-fade-in",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
         className

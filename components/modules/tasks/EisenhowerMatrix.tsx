@@ -184,7 +184,7 @@ function Quadrant({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 className="font-serif text-lg leading-none tracking-tight text-text">
+          <h3 className="text-lg leading-none tracking-tight text-text">
             {meta.title}
           </h3>
           <p className="mt-1 text-[11px] leading-4 text-text-3">{meta.hint}</p>

@@ -11,8 +11,9 @@ export interface StatProps {
 }
 
 /**
- * Regla 4 del sistema visual: cifra en Instrument Serif grande,
- * label en Inter pequeño debajo.
+ * Regla 4 del sistema visual: cifra grande (font-mono, ver .stat-value en
+ * globals.css — originalmente era Instrument Serif, retirada a pedido del
+ * usuario), label en Inter pequeño debajo.
  */
 function Stat({ label, value, sub, className, valueClassName }: StatProps) {
   return (

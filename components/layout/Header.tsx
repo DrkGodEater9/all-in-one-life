@@ -29,7 +29,7 @@ export function Header({ title, action }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur md:hidden">
       <div className="flex h-14 items-center justify-between gap-3 px-4">
-        <Link href="/" className="font-serif text-lg tracking-tight text-text">
+        <Link href="/" className="text-lg tracking-tight text-text">
           Personal OS
         </Link>
         <span className="sr-only">{resolved}</span>

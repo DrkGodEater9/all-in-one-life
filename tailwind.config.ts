@@ -64,8 +64,10 @@ const config: Config = {
         },
       },
       fontFamily: {
+        // Instrument Serif se retiró del sistema visual a pedido del
+        // usuario (se veía mal en cifras y tampoco convenció en títulos).
+        // Todo el texto usa Inter; JetBrains Mono queda solo para números.
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["var(--font-instrument-serif)", "ui-serif", "Georgia", "serif"],
         mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
       },
       borderRadius: {
@@ -93,12 +95,28 @@ const config: Config = {
           from: { opacity: "0", transform: "scale(0.97)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        // Solo para Dialog: un keyframe que fija `transform` reemplaza POR
+        // COMPLETO el transform del elemento durante la animación, así que
+        // si el Dialog está centrado con `-translate-x-1/2 -translate-y-1/2`
+        // (clases estáticas de Tailwind), ese centrado desaparece mientras
+        // dura la animación y el modal se ve en la esquina superior
+        // izquierda de su punto de anclaje (que cae en la esquina inferior
+        // derecha de la pantalla) hasta que la animación termina y el
+        // centrado estático vuelve a aplicar — el "salto" que se veía. Este
+        // keyframe hornea el mismo translate(-50%,-50%) para que nunca se
+        // pierda. No usar para nada que no esté centrado así (Toast, por
+        // ejemplo, usa "scale-in" a secas).
+        "dialog-scale-in": {
+          from: { opacity: "0", transform: "translate(-50%, -50%) scale(0.97)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 150ms ease-out",
         "accordion-up": "accordion-up 150ms ease-out",
         "fade-in": "fade-in 150ms ease-out",
         "scale-in": "scale-in 150ms ease-out",
+        "dialog-scale-in": "dialog-scale-in 150ms ease-out",
       },
     },
   },

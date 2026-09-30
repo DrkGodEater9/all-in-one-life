@@ -357,7 +357,7 @@ export function ProjectDetailClient({ projectId }: { projectId: number }) {
               value={project.title}
               maxLength={200}
               placeholder="Sin título"
-              displayClassName="font-serif text-3xl leading-tight tracking-tight"
+              displayClassName="text-3xl leading-tight tracking-tight"
               onSave={(next) =>
                 patchProject(
                   { title: next },

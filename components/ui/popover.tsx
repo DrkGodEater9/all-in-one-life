@@ -19,7 +19,8 @@ const PopoverContent = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         "z-50 w-72 rounded-lg border border-border bg-surface p-4 text-text outline-none",
-        "data-[state=open]:animate-scale-in",
+        // Solo fade, no scale: ver el comentario equivalente en dropdown-menu.tsx.
+        "data-[state=open]:animate-fade-in",
         className
       )}
       {...props}

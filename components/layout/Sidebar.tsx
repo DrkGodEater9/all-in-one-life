@@ -73,7 +73,7 @@ export function Sidebar() {
       <div className="flex h-14 shrink-0 items-center px-5">
         <Link
           href="/"
-          className="font-serif text-xl tracking-tight text-text transition-colors hover:text-accent"
+          className="text-xl tracking-tight text-text transition-colors hover:text-accent"
         >
           Personal OS
         </Link>

@@ -94,14 +94,14 @@ Tokens ya definidos en `app/globals.css` y mapeados en `tailwind.config.ts`. **U
 
 `bg-bg` · `bg-surface` · `bg-surface-2` · `border-border` · `text-text` · `text-text-2` · `text-text-3` · `bg-accent` / `text-accent` / `bg-accent-soft` · `text-green|yellow|red` · `text-success|warning|danger` · `text-cat-medical|cat-work|cat-personal|cat-study`
 
-Tipografía: `font-sans` (Inter, UI) · `font-serif` (Instrument Serif, títulos y cifras destacadas) · `font-mono` (JetBrains Mono, **solo** cifras financieras, calorías y pesos).
+Tipografía: `font-sans` (Inter, todo el texto y los títulos) · `font-mono` (JetBrains Mono, **solo** cifras financieras, calorías y pesos). `font-serif`/Instrument Serif se retiró del sistema por decisión explícita del usuario — no reintroducirlo.
 
 Las seis reglas del spec, en corto:
 
 1. Densidad informativa — contenido real en cada pantalla, padding generoso.
 2. Un solo acento, con disciplina — el violeta solo para acción primaria y estado activo.
 3. Sin sombras decorativas — separar con `border border-border`.
-4. Números con personalidad — cifra en `font-serif` grande (usa el componente `Stat`), label en `Inter` pequeño debajo.
+4. Números con personalidad — cifra en `font-mono` grande (usa el componente `Stat`), label en `Inter` pequeño debajo.
 5. Motion solo funcional — 150ms de feedback. Sin animaciones de entrada por sección.
 6. Sidebar fija en desktop, bottom nav en mobile — ya resuelto por `AppShell`.
 

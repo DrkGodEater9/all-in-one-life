@@ -23,7 +23,7 @@ export function ProjectCardBody({
       <div className="flex items-start justify-between gap-2">
         <h3
           className={cn(
-            "min-w-0 font-serif leading-tight text-text",
+            "min-w-0 leading-tight text-text",
             compact ? "text-base" : "text-lg"
           )}
         >
