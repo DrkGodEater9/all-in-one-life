@@ -13,7 +13,7 @@ describe("GET /api/nutrition/water", () => {
     ]);
     prismaMock.nutritionWaterLog.aggregate.mockResolvedValue({ _sum: { amountMl: 750 } });
 
-    const { status, body } = await get(GET, "/api/nutrition/water?date=2026-01-01");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/water?date=2026-01-01");
 
     expect(status).toBe(200);
     expect(body.totalMl).toBe(750);
@@ -24,7 +24,7 @@ describe("GET /api/nutrition/water", () => {
     prismaMock.nutritionWaterLog.findMany.mockResolvedValue([]);
     prismaMock.nutritionWaterLog.aggregate.mockResolvedValue({ _sum: { amountMl: null } });
 
-    const { status, body } = await get(GET, "/api/nutrition/water?date=2026-01-02");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/water?date=2026-01-02");
 
     expect(status).toBe(200);
     expect(body.totalMl).toBe(0);
@@ -42,7 +42,7 @@ describe("POST /api/nutrition/water", () => {
     prismaMock.nutritionWaterLog.create.mockResolvedValue({});
     prismaMock.nutritionWaterLog.aggregate.mockResolvedValue({ _sum: { amountMl: 250 } });
 
-    const { status, body } = await post(POST, "/api/nutrition/water", {});
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/nutrition/water", {});
 
     expect(status).toBe(201);
     expect(prismaMock.nutritionWaterLog.create).toHaveBeenCalledWith(
@@ -64,7 +64,7 @@ describe("POST /api/nutrition/water", () => {
     prismaMock.nutritionWaterLog.create.mockResolvedValue({});
     prismaMock.nutritionWaterLog.aggregate.mockResolvedValue({ _sum: { amountMl: 500 } });
 
-    const { status, body } = await post(POST, "/api/nutrition/water", { amountMl: 500 });
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/nutrition/water", { amountMl: 500 });
 
     expect(status).toBe(201);
     expect(body.totalMl).toBe(500);

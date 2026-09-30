@@ -17,7 +17,7 @@ describe("DELETE /api/finance/transactions/[id]", () => {
     prismaMock.financeTransaction.delete.mockResolvedValue({});
     prismaMock.financeSource.update.mockResolvedValue({});
 
-    const { status, body } = await del(DELETE, "/api/finance/transactions/1", { id: "1" });
+    const { status, body }: { status: number; body: any } = await del(DELETE, "/api/finance/transactions/1", { id: "1" });
 
     expect(status).toBe(200);
     expect(body).toEqual({ success: true });

@@ -15,7 +15,7 @@ describe("GET /api/finance/summary/monthly", () => {
       { type: "expense", amount: new Prisma.Decimal("100"), category: "transporte" },
     ]);
 
-    const { status, body } = await get(GET, "/api/finance/summary/monthly?month=2026-03");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/summary/monthly?month=2026-03");
 
     expect(status).toBe(200);
     expect(body.income).toBe(1000);
@@ -31,7 +31,7 @@ describe("GET /api/finance/summary/monthly", () => {
   it("un mes sin movimientos devuelve ceros y desglose vacío, sin dividir por cero", async () => {
     prismaMock.financeTransaction.findMany.mockResolvedValue([]);
 
-    const { status, body } = await get(GET, "/api/finance/summary/monthly?month=2026-04");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/summary/monthly?month=2026-04");
 
     expect(status).toBe(200);
     expect(body).toMatchObject({
@@ -45,7 +45,7 @@ describe("GET /api/finance/summary/monthly", () => {
 
   it("usa el mes actual si no se especifica `month`", async () => {
     prismaMock.financeTransaction.findMany.mockResolvedValue([]);
-    const { status, body } = await get(GET, "/api/finance/summary/monthly");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/summary/monthly");
     expect(status).toBe(200);
     expect(typeof body.month).toBe("string");
   });

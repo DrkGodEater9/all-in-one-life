@@ -8,7 +8,7 @@ import { signOut } from "../../mocks/session";
 describe("GET /api/nutrition/goals", () => {
   it("devuelve la meta por defecto si no hay ninguna guardada", async () => {
     prismaMock.nutritionGoal.findFirst.mockResolvedValue(null);
-    const { status, body } = await get(GET, "/api/nutrition/goals");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/goals");
     expect(status).toBe(200);
     expect(body).toMatchObject({ id: null, kcal: 2000, proteinG: 150, carbsG: 200, fatG: 65 });
   });
@@ -22,7 +22,7 @@ describe("GET /api/nutrition/goals", () => {
       fatG: 70,
       updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     });
-    const { body } = await get(GET, "/api/nutrition/goals");
+    const { body }: { body: any } = await get(GET, "/api/nutrition/goals");
     expect(body.kcal).toBe(2500);
   });
 

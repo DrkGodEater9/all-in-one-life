@@ -11,7 +11,7 @@ describe("POST /api/nutrition/log/meal", () => {
     prismaMock.nutritionMealLog.findFirst.mockResolvedValue(null);
     prismaMock.nutritionMealLog.create.mockResolvedValue({ id: 1, mealType: "lunch" });
 
-    const { status, body } = await post(CREATE_MEAL, "/api/nutrition/log/meal", {
+    const { status, body }: { status: number; body: any } = await post(CREATE_MEAL, "/api/nutrition/log/meal", {
       date: "2026-01-01",
       mealType: "lunch",
     });
@@ -23,7 +23,7 @@ describe("POST /api/nutrition/log/meal", () => {
   it("reutiliza la comida existente en vez de duplicarla", async () => {
     prismaMock.nutritionMealLog.findFirst.mockResolvedValue({ id: 7, mealType: "breakfast" });
 
-    const { status, body } = await post(CREATE_MEAL, "/api/nutrition/log/meal", {
+    const { status, body }: { status: number; body: any } = await post(CREATE_MEAL, "/api/nutrition/log/meal", {
       date: "2026-01-01",
       mealType: "breakfast",
     });
@@ -62,7 +62,7 @@ describe("GET /api/nutrition/log", () => {
       },
     ]);
 
-    const { status, body } = await get(GET_LOG, "/api/nutrition/log?date=2026-01-01");
+    const { status, body }: { status: number; body: any } = await get(GET_LOG, "/api/nutrition/log?date=2026-01-01");
 
     expect(status).toBe(200);
     expect(body.meals.map((m: any) => m.mealType)).toEqual(["breakfast", "dinner"]);
@@ -71,7 +71,7 @@ describe("GET /api/nutrition/log", () => {
 
   it("un día sin comidas devuelve una lista vacía", async () => {
     prismaMock.nutritionMealLog.findMany.mockResolvedValue([]);
-    const { status, body } = await get(GET_LOG, "/api/nutrition/log?date=2026-01-01");
+    const { status, body }: { status: number; body: any } = await get(GET_LOG, "/api/nutrition/log?date=2026-01-01");
     expect(status).toBe(200);
     expect(body.meals).toEqual([]);
   });

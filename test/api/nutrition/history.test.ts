@@ -28,7 +28,7 @@ describe("GET /api/nutrition/history", () => {
       },
     ]);
 
-    const { status, body } = await get(GET, "/api/nutrition/history?days=3");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/history?days=3");
 
     expect(status).toBe(200);
     expect(body.from).toBe("2026-01-08");
@@ -50,7 +50,7 @@ describe("GET /api/nutrition/history", () => {
       { date: new Date("2026-01-10T00:00:00.000Z"), items: [{ kcal: 200, proteinG: 10, carbsG: 20, fatG: 4 }] },
     ]);
 
-    const { body } = await get(GET, "/api/nutrition/history?days=1");
+    const { body }: { body: any } = await get(GET, "/api/nutrition/history?days=1");
 
     expect(body.series).toEqual([{ date: "2026-01-10", kcal: 300, proteinG: 15, carbsG: 30, fatG: 6 }]);
   });

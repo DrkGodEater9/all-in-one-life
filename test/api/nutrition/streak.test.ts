@@ -28,7 +28,7 @@ describe("GET /api/nutrition/streak", () => {
       )
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/streak");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/streak");
 
     expect(status).toBe(200);
     expect(body.loggedToday).toBe(true);
@@ -41,7 +41,7 @@ describe("GET /api/nutrition/streak", () => {
       withDates("2026-01-09T00:00:00.000Z", "2026-01-08T00:00:00.000Z")
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/streak");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/streak");
 
     expect(status).toBe(200);
     expect(body.loggedToday).toBe(false);
@@ -54,7 +54,7 @@ describe("GET /api/nutrition/streak", () => {
       withDates("2026-01-05T00:00:00.000Z")
     );
 
-    const { body } = await get(GET, "/api/nutrition/streak");
+    const { body }: { body: any } = await get(GET, "/api/nutrition/streak");
 
     expect(body.streak).toBe(0);
     expect(body.loggedToday).toBe(false);
@@ -63,7 +63,7 @@ describe("GET /api/nutrition/streak", () => {
   it("sin ningún registro, la racha es 0", async () => {
     prismaMock.nutritionMealLog.findMany.mockResolvedValue([]);
 
-    const { body } = await get(GET, "/api/nutrition/streak");
+    const { body }: { body: any } = await get(GET, "/api/nutrition/streak");
 
     expect(body.streak).toBe(0);
     expect(body.loggedToday).toBe(false);

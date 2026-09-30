@@ -9,7 +9,7 @@ import { signOut } from "../../mocks/session";
 describe("GET /api/nutrition/favorites", () => {
   it("lista los favoritos", async () => {
     prismaMock.nutritionFavorite.findMany.mockResolvedValue([{ id: 1, name: "Yogur" }]);
-    const { status, body } = await get(GET, "/api/nutrition/favorites");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/favorites");
     expect(status).toBe(200);
     expect(body).toHaveLength(1);
   });
@@ -24,7 +24,7 @@ describe("GET /api/nutrition/favorites", () => {
 describe("POST /api/nutrition/favorites", () => {
   it("crea el favorito", async () => {
     prismaMock.nutritionFavorite.create.mockResolvedValue({ id: 1, name: "Yogur" });
-    const { status, body } = await post(POST, "/api/nutrition/favorites", {
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/nutrition/favorites", {
       name: "Yogur",
       kcal100g: 59,
       protein100g: 10,

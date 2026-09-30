@@ -13,7 +13,7 @@ describe("GET /api/finance/balance", () => {
       { id: 2, name: "savings", balance: new Prisma.Decimal("300.25") },
     ]);
 
-    const { status, body } = await get(GET, "/api/finance/balance");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/balance");
 
     expect(status).toBe(200);
     expect(typeof body.daily).toBe("number");
@@ -34,7 +34,7 @@ describe("GET /api/finance/balance", () => {
       .mockResolvedValueOnce({ id: 1, name: "daily", balance: new Prisma.Decimal("0") })
       .mockResolvedValueOnce({ id: 2, name: "savings", balance: new Prisma.Decimal("0") });
 
-    const { status, body } = await get(GET, "/api/finance/balance");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/balance");
 
     expect(status).toBe(200);
     expect(body.daily).toBe(0);

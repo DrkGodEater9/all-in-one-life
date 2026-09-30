@@ -34,7 +34,7 @@ describe("GET /api/nutrition/search", () => {
       vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) }))
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/search?q=pollo");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/search?q=pollo");
 
     expect(status).toBe(200);
     expect(body).toHaveLength(1);
@@ -51,7 +51,7 @@ describe("GET /api/nutrition/search", () => {
       })
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/search?q=pollo");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/search?q=pollo");
 
     expect(status).toBe(200);
     expect(body).toEqual([]);
@@ -70,7 +70,7 @@ describe("GET /api/nutrition/search", () => {
       }))
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/search?q=pollo");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/search?q=pollo");
 
     expect(status).toBe(200);
     expect(body).toEqual([]);
@@ -111,7 +111,7 @@ describe("GET /api/nutrition/search", () => {
       fat100g: 0.2,
     });
 
-    const { status, body } = await get(GET, "/api/nutrition/search?q=manzana");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/search?q=manzana");
 
     expect(status).toBe(200);
     expect(body).toHaveLength(1);
@@ -136,7 +136,7 @@ describe("GET /api/nutrition/search", () => {
       }))
     );
 
-    const { status, body } = await get(GET, "/api/nutrition/search?q=manzana");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/search?q=manzana");
 
     expect(status).toBe(200);
     expect(body).toHaveLength(1);

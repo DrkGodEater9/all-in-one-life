@@ -25,7 +25,7 @@ describe("POST /api/finance/debts/[id]/pay", () => {
       debt({ amountPaid: new Prisma.Decimal("60") })
     );
 
-    const { status, body } = await post(
+    const { status, body }: { status: number; body: any } = await post(
       POST,
       "/api/finance/debts/1/pay",
       { amount: 20 },
@@ -65,7 +65,7 @@ describe("POST /api/finance/debts/[id]/pay", () => {
   it("rechaza con 400 un pago que excede el saldo pendiente", async () => {
     prismaMock.financeDebt.findUnique.mockResolvedValue(debt());
 
-    const { status, body } = await post(
+    const { status, body }: { status: number; body: any } = await post(
       POST,
       "/api/finance/debts/1/pay",
       { amount: 61 },

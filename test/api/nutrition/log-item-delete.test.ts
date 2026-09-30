@@ -12,7 +12,7 @@ describe("DELETE /api/nutrition/log/item/[id]", () => {
     prismaMock.nutritionMealItem.count.mockResolvedValue(0);
     prismaMock.nutritionMealLog.delete.mockResolvedValue({});
 
-    const { status, body } = await del(DELETE, "/api/nutrition/log/item/1", { id: "1" });
+    const { status, body }: { status: number; body: any } = await del(DELETE, "/api/nutrition/log/item/1", { id: "1" });
 
     expect(status).toBe(200);
     expect(body).toEqual({ success: true });

@@ -9,7 +9,7 @@ import { signOut } from "../../mocks/session";
 describe("GET /api/finance/assets", () => {
   it("lista los activos", async () => {
     prismaMock.financeAsset.findMany.mockResolvedValue([{ id: 1, title: "Laptop" }]);
-    const { status, body } = await get(GET, "/api/finance/assets");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/assets");
     expect(status).toBe(200);
     expect(body).toHaveLength(1);
   });
@@ -24,7 +24,7 @@ describe("GET /api/finance/assets", () => {
 describe("POST /api/finance/assets", () => {
   it("crea el activo", async () => {
     prismaMock.financeAsset.create.mockResolvedValue({ id: 1, title: "Laptop", quantity: 1 });
-    const { status, body } = await post(POST, "/api/finance/assets", {
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/finance/assets", {
       title: "Laptop",
       quantity: 1,
     });
@@ -58,7 +58,7 @@ describe("PUT /api/finance/assets/[id]", () => {
   it("actualiza el activo existente", async () => {
     prismaMock.financeAsset.findUnique.mockResolvedValue({ id: 1, title: "Laptop" });
     prismaMock.financeAsset.update.mockResolvedValue({ id: 1, title: "Laptop Pro", quantity: 1 });
-    const { status, body } = await put(
+    const { status, body }: { status: number; body: any } = await put(
       PUT,
       "/api/finance/assets/1",
       { title: "Laptop Pro", quantity: 1 },
@@ -79,7 +79,7 @@ describe("DELETE /api/finance/assets/[id]", () => {
   it("borra el activo existente", async () => {
     prismaMock.financeAsset.findUnique.mockResolvedValue({ id: 1 });
     prismaMock.financeAsset.delete.mockResolvedValue({});
-    const { status, body } = await del(DELETE, "/api/finance/assets/1", { id: "1" });
+    const { status, body }: { status: number; body: any } = await del(DELETE, "/api/finance/assets/1", { id: "1" });
     expect(status).toBe(200);
     expect(body).toEqual({ success: true });
   });

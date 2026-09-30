@@ -13,7 +13,7 @@ describe("GET /api/nutrition/weight", () => {
       { id: 1, date: new Date("2026-01-01T00:00:00.000Z"), weightKg: 70.5, notes: null },
     ]);
 
-    const { status, body } = await get(GET, "/api/nutrition/weight");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/weight");
 
     expect(status).toBe(200);
     expect(body[0].date).toBe("2026-01-01");
@@ -36,7 +36,7 @@ describe("POST /api/nutrition/weight", () => {
       notes: null,
     });
 
-    const { status, body } = await post(POST, "/api/nutrition/weight", {
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/nutrition/weight", {
       weightKg: 71,
       date: "2026-01-05",
     });
@@ -50,7 +50,7 @@ describe("POST /api/nutrition/weight", () => {
     prismaMock.nutritionWeightLog.findFirst.mockResolvedValue({ id: 5, weightKg: 70 });
     prismaMock.nutritionWeightLog.update.mockResolvedValue({ id: 5, weightKg: 72, notes: "ajuste" });
 
-    const { status, body } = await post(POST, "/api/nutrition/weight", {
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/nutrition/weight", {
       weightKg: 72,
       date: "2026-01-05",
       notes: "ajuste",

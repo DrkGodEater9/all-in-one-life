@@ -15,7 +15,7 @@ describe("GET /api/finance/transactions", () => {
       { id: 1, amount: new Prisma.Decimal("1500.50"), type: "expense", source: DAILY },
     ]);
 
-    const { status, body } = await get(GET, "/api/finance/transactions");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/finance/transactions");
 
     expect(status).toBe(200);
     expect(body[0].amount).toBe(1500.5);
@@ -90,7 +90,7 @@ describe("POST /api/finance/transactions", () => {
     });
     prismaMock.financeSource.update.mockResolvedValue({});
 
-    const { status, body } = await post(POST, "/api/finance/transactions", {
+    const { status, body }: { status: number; body: any } = await post(POST, "/api/finance/transactions", {
       type: "expense",
       amount: 50,
       category: "alimentación",

@@ -12,7 +12,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     prismaMock.nutritionMealLog.findUnique.mockResolvedValue(MEAL);
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { status, body } = await post(
+    const { status, body }: { status: number; body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       {
@@ -37,7 +37,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     prismaMock.nutritionMealLog.findUnique.mockResolvedValue(MEAL);
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { body } = await post(
+    const { body }: { body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       { foodName: "Arroz", kcal100g: 130, protein100g: 2.7, carbs100g: 28, fat100g: 0.3, amountG: 50 },
@@ -54,7 +54,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     prismaMock.nutritionMealLog.findUnique.mockResolvedValue(MEAL);
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { body } = await post(
+    const { body }: { body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       { foodName: "Casero", kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 2, amountG: 100 },
@@ -76,7 +76,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     });
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { body } = await post(
+    const { body }: { body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       { foodCacheId: 7, amountG: 100 },
@@ -100,7 +100,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     });
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { body } = await post(
+    const { body }: { body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       { foodCacheId: 8, amountG: 200 },
@@ -124,7 +124,7 @@ describe("POST /api/nutrition/log/meal/[id]/item", () => {
     });
     prismaMock.nutritionMealItem.create.mockImplementation(async ({ data }: any) => data);
 
-    const { status, body } = await post(
+    const { status, body }: { status: number; body: any } = await post(
       POST,
       "/api/nutrition/log/meal/1/item",
       { favoriteId: 3, amountG: 150 },

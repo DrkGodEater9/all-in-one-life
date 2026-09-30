@@ -20,7 +20,7 @@ describe("GET /api/nutrition/summary", () => {
       updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     });
 
-    const { status, body } = await get(GET, "/api/nutrition/summary?date=2026-01-15");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/summary?date=2026-01-15");
 
     expect(status).toBe(200);
     expect(body.date).toBe("2026-01-15");
@@ -32,7 +32,7 @@ describe("GET /api/nutrition/summary", () => {
   it("un día sin registros devuelve ceros, no falla", async () => {
     prismaMock.nutritionMealItem.findMany.mockResolvedValue([]);
 
-    const { status, body } = await get(GET, "/api/nutrition/summary?date=2026-02-01");
+    const { status, body }: { status: number; body: any } = await get(GET, "/api/nutrition/summary?date=2026-02-01");
 
     expect(status).toBe(200);
     expect(body.itemCount).toBe(0);
