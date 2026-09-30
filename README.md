@@ -19,9 +19,11 @@ Next.js 14 (App Router) · TypeScript · Prisma · Supabase (Postgres + Auth) ·
    | Variable | De dónde sale |
    |---|---|
    | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API |
-   | `DATABASE_URL` | Supabase → Database → Connection string (pooler, puerto 6543, con `?pgbouncer=true`) |
-   | `DIRECT_URL` | Misma pantalla, conexión directa (puerto 5432). La usan las migraciones. |
+   | `DATABASE_URL` | Supabase → botón *Connect* → **Transaction pooler**, puerto 6543, con `?pgbouncer=true` |
+   | `DIRECT_URL` | Mismo diálogo → **Session pooler**, puerto 5432 (no la "conexión directa") |
    | `CRON_SECRET` | Cualquier string aleatorio. Protege `/api/cron/reminders`. |
+
+   > **Ojo con la "conexión directa"** (`db.<ref>.supabase.co:5432`, sin pooler): en proyectos nuevos de Supabase ese host solo resuelve por IPv6. Si tu red no tiene salida IPv6 (típico en Windows/redes domésticas), `prisma db push` falla con `P1001: Can't reach database server`. El *connection pooling* (mismo host `aws-0-<region>.pooler.supabase.com` para ambos modos) sí resuelve por IPv4 — úsalo para `DATABASE_URL` **y** `DIRECT_URL`, no solo para el primero.
 
    Prisma también lee `.env` (no `.env.local`) para los comandos de CLI: pon ahí `DATABASE_URL` y `DIRECT_URL`.
 
