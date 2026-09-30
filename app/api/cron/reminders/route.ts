@@ -46,7 +46,14 @@ function buildMessage(event: {
 }
 
 /**
- * GET /api/cron/reminders — Vercel Cron, cada 10 minutos.
+ * GET /api/cron/reminders — Vercel Cron.
+ *
+ * El spec pide una ejecución cada 10 minutos, pero el plan Hobby de Vercel
+ * limita los cron jobs a una ejecución diaria. `vercel.json` corre esto a las
+ * 11:00 UTC (~6am Bogotá). Efecto real: un recordatorio con `remindTime`
+ * posterior a esa hora se marca `isSent` con hasta ~24h de retraso, no en el
+ * momento exacto — es la limitación del plan, no un bug. Con Pro, volver al
+ * schedule de cada 10 minutos en `vercel.json` sin tocar esta ruta.
  *
  * 1. Busca recordatorios `isSent: false` cuyo momento de disparo
  *    (fecha del evento − `daysBefore`, a la hora `remindTime`) ya pasó.
