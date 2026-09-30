@@ -6,12 +6,14 @@ import type { Config } from "tailwindcss";
  * plano: descarta la clase en silencio y no emite CSS. Envolverlo en una función
  * con `opacityValue` nos deja seguir escribiendo `bg-accent/85` y que funcione.
  */
-const token =
-  (name: string) =>
-  ({ opacityValue }: { opacityValue?: string }) =>
+const token = (name: string) =>
+  // Tailwind acepta funciones como valor de color en runtime, pero su tipo
+  // `RecursiveKeyValuePair` solo admite strings. El cast mantiene el tipado del
+  // resto de la config sin renunciar al comportamiento.
+  ((({ opacityValue }: { opacityValue?: string }) =>
     opacityValue === undefined
       ? `var(--color-${name})`
-      : `color-mix(in srgb, var(--color-${name}) ${Number(opacityValue) * 100}%, transparent)`;
+      : `color-mix(in srgb, var(--color-${name}) ${Number(opacityValue) * 100}%, transparent)`) as unknown) as string;
 
 const config: Config = {
   darkMode: "class",

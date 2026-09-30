@@ -26,7 +26,7 @@ import { DayView } from "./DayView";
 import { EventFormDialog } from "./EventFormDialog";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
-import type { CalendarEventDTO } from "./types";
+import { toEditable, type CalendarEventDTO, type EditableEvent } from "./types";
 
 type View = "month" | "week" | "day";
 
@@ -51,7 +51,7 @@ export function CalendarClient() {
   const [loading, setLoading] = React.useState(true);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<CalendarEventDTO | null>(null);
+  const [editing, setEditing] = React.useState<EditableEvent | null>(null);
 
   const range = React.useMemo(() => rangeFor(view, cursor), [view, cursor]);
   const fromKey = toDateKey(range.from);
@@ -103,7 +103,7 @@ export function CalendarClient() {
     setDialogOpen(true);
   };
 
-  const openEdit = (event: CalendarEventDTO) => {
+  const openEdit = (event: EditableEvent) => {
     setEditing(event);
     setDialogOpen(true);
   };
@@ -164,7 +164,7 @@ export function CalendarClient() {
           cursor={cursor}
           events={events}
           onSelectDay={openDay}
-          onSelectEvent={openEdit}
+          onSelectEvent={(event) => openEdit(toEditable(event))}
         />
       ) : (
         <DayView

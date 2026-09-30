@@ -36,6 +36,19 @@ export function parseDateKey(key: string) {
   return new Date(`${key}T00:00:00.000Z`);
 }
 
+/**
+ * Lee una columna @db.Date de vuelta a 'YYYY-MM-DD'.
+ *
+ * Prisma devuelve esas columnas a medianoche UTC, así que hay que leerlas en
+ * UTC: usar `toDateKey` (que es local) restaría un día en husos negativos como
+ * el de Colombia. Regla: `toDateKey` para el "hoy" del usuario en el cliente,
+ * `dbDateKey` para cualquier fecha que venga de la base.
+ */
+export function dbDateKey(value: Date | string): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  return d.toISOString().slice(0, 10);
+}
+
 /** Parsea 'HH:mm' a un Date UTC, para columnas @db.Time. */
 export function parseTime(hhmm: string) {
   return new Date(`1970-01-01T${hhmm.length === 5 ? hhmm : hhmm.slice(0, 5)}:00.000Z`);

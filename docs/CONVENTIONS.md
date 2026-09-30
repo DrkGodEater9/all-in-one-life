@@ -71,6 +71,9 @@ El schema usa `@db.Date` y `@db.Time` por separado. Helpers en `@/lib/utils`:
 - `parseDateKey("YYYY-MM-DD")` → `Date` en UTC medianoche, que es lo que espera una columna `@db.Date`
 - `parseTime("HH:mm")` → `Date` para una columna `@db.Time`
 - `formatTime(value)` → `"HH:mm"` desde una columna `@db.Time`
+- `dbDateKey(value)` → `"YYYY-MM-DD"` **leyendo en UTC**, para fechas que vienen de la base
+
+Cuidado con el desfase de huso: Prisma devuelve las columnas `@db.Date` a medianoche UTC. Usa `toDateKey` solo para el "hoy" del usuario en el cliente y `dbDateKey` para cualquier fecha leída de la base — al revés se pierde un día en husos negativos como el de Colombia.
 
 Las fechas viajan por la API siempre como `"YYYY-MM-DD"` y las horas como `"HH:mm"`. Nunca mandar un ISO completo para un campo de fecha.
 

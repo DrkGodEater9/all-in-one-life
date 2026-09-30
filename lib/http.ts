@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 export class ApiError extends Error {
@@ -27,16 +28,10 @@ export function serialize<T>(value: T): T {
   if (value instanceof Date) return value.toISOString() as unknown as T;
 
   if (typeof value === "object") {
-    // Prisma.Decimal expone toFixed/toNumber sin ser Date ni Array
-    const maybeDecimal = value as unknown as {
-      toNumber?: () => number;
-      constructor?: { name?: string };
-    };
-    if (
-      typeof maybeDecimal.toNumber === "function" &&
-      maybeDecimal.constructor?.name === "Decimal"
-    ) {
-      return maybeDecimal.toNumber() as unknown as T;
+    // Comprobación oficial: en el bundle de Prisma la clase Decimal va
+    // minificada, así que `constructor.name` no es "Decimal" sino algo como "i".
+    if (Prisma.Decimal.isDecimal(value)) {
+      return (value as Prisma.Decimal).toNumber() as unknown as T;
     }
 
     if (Array.isArray(value)) {
