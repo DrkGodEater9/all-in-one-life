@@ -17,17 +17,20 @@ import {
 import { TransactionsTab } from "./transactions-tab";
 import { DebtsTab } from "./debts-tab";
 import { AssetsTab } from "./assets-tab";
+import { CreditLinesTab } from "./credit-lines-tab";
 import { AddTransactionDialog } from "./add-transaction-dialog";
 import { AddDebtDialog } from "./add-debt-dialog";
 import { AssetDialog } from "./asset-dialog";
+import { AddCreditLineDialog } from "./add-credit-line-dialog";
 import type { Balance } from "./types";
 
-type TabValue = "transactions" | "debts" | "assets";
+type TabValue = "transactions" | "debts" | "assets" | "credit-lines";
 
 const ADD_LABEL: Record<TabValue, string> = {
   transactions: "Nueva transacción",
   debts: "Nueva deuda",
   assets: "Nuevo activo",
+  "credit-lines": "Nueva línea de crédito",
 };
 
 export function FinanceClient() {
@@ -39,6 +42,7 @@ export function FinanceClient() {
   const [txDialog, setTxDialog] = React.useState(false);
   const [debtDialog, setDebtDialog] = React.useState(false);
   const [assetDialog, setAssetDialog] = React.useState(false);
+  const [creditLineDialog, setCreditLineDialog] = React.useState(false);
 
   const reload = React.useCallback(() => setReloadKey((k) => k + 1), []);
 
@@ -72,6 +76,7 @@ export function FinanceClient() {
   function openAddForActiveTab() {
     if (tab === "transactions") setTxDialog(true);
     else if (tab === "debts") setDebtDialog(true);
+    else if (tab === "credit-lines") setCreditLineDialog(true);
     else setAssetDialog(true);
   }
 
@@ -112,6 +117,7 @@ export function FinanceClient() {
           <TabsTrigger value="transactions">Transacciones</TabsTrigger>
           <TabsTrigger value="debts">Deudas</TabsTrigger>
           <TabsTrigger value="assets">Activos</TabsTrigger>
+          <TabsTrigger value="credit-lines">Créditos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="transactions">
@@ -128,6 +134,10 @@ export function FinanceClient() {
 
         <TabsContent value="assets">
           <AssetsTab reloadKey={reloadKey} onChanged={reload} />
+        </TabsContent>
+
+        <TabsContent value="credit-lines">
+          <CreditLinesTab reloadKey={reloadKey} onChanged={reload} />
         </TabsContent>
       </Tabs>
 
@@ -158,6 +168,11 @@ export function FinanceClient() {
         open={assetDialog}
         onOpenChange={setAssetDialog}
         onSaved={reload}
+      />
+      <AddCreditLineDialog
+        open={creditLineDialog}
+        onOpenChange={setCreditLineDialog}
+        onCreated={reload}
       />
     </div>
   );

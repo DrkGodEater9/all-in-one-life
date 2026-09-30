@@ -171,3 +171,69 @@ export function money(value: number): number {
 export function balanceDelta(type: string, amount: number): number {
   return type === "income" ? money(amount) : -money(amount);
 }
+
+/** Escapa un campo para CSV (RFC 4180). Compartido por los export/csv. */
+export function csvCell(value: unknown): string {
+  const raw = value === null || value === undefined ? "" : String(value);
+  return /[",\r\n]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw;
+}
+
+/** Arma la respuesta de descarga de un CSV, con BOM para que Excel lea bien los acentos. */
+export function csvResponse(headers: string[], rows: string[][], filename: string): Response {
+  const csv = `﻿${[headers.join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\r\n")}\r\n`;
+  return new Response(csv, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+// ─────────────────────────────────────────
+// Líneas de crédito
+// ─────────────────────────────────────────
+
+export const creditMovementTypeSchema = z.enum(["withdrawal", "payment"]);
+
+export const creditLineSchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(80),
+  creditLimit: z.number().finite().positive().max(9_999_999_999).nullable().optional(),
+});
+
+export const creditMovementSchema = z.object({
+  type: creditMovementTypeSchema,
+  amount: amountSchema,
+  date: dateKeySchema.optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+/**
+ * Usado = Σ retiros − Σ pagos. Disponible = cupo − usado (null si no hay cupo).
+ * Nunca negativo hacia afuera: si se paga de más, `used` puede quedar
+ * negativo internamente (a favor), pero se reporta en 0 para no confundir.
+ */
+export function creditLineBalance(
+  movements: { type: string; amount: Prisma.Decimal | number }[],
+  creditLimit: Prisma.Decimal | number | null
+) {
+  const used = movements.reduce(
+    (acc, m) => acc + (m.type === "withdrawal" ? num(m.amount) : -num(m.amount)),
+    0
+  );
+  const usedClamped = Math.max(0, money(used));
+  const limit = creditLimit === null || creditLimit === undefined ? null : num(creditLimit);
+  return {
+    used: usedClamped,
+    limit,
+    available: limit === null ? null : money(Math.max(0, limit - usedClamped)),
+  };
+}
+
+/** Valida que la línea de crédito exista. */
+export async function assertCreditLineExists(id: number) {
+  const line = await prisma.financeCreditLine.findUnique({ where: { id } });
+  if (!line) throw badRequest("La línea de crédito indicada no existe");
+  return line;
+}

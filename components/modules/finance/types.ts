@@ -83,6 +83,30 @@ export interface MonthlySummary {
   byCategory: CategoryBreakdown[];
 }
 
+export interface CreditMovement {
+  id: number;
+  creditLineId: number;
+  type: "withdrawal" | "payment";
+  amount: number;
+  date: string;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface CreditLine {
+  id: number;
+  name: string;
+  creditLimit: number | null;
+  createdAt: string;
+  used: number;
+  limit: number | null;
+  available: number | null;
+}
+
+export interface CreditLineDetail extends CreditLine {
+  movements: CreditMovement[];
+}
+
 /** Filtros del listado de transacciones (estado local del tab). */
 export interface TransactionFiltersState {
   type: TransactionType | "all";
