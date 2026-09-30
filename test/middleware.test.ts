@@ -8,8 +8,14 @@ vi.mock("@/lib/supabase/middleware", () => ({
   updateSession: updateSessionMock,
 }));
 
-async function run(path: string, user: { id: string } | null) {
-  updateSessionMock.mockResolvedValue({ response: NextResponse.next(), user });
+async function run(
+  path: string,
+  user: { id: string } | null,
+  opts: { refreshedCookie?: { name: string; value: string } } = {}
+) {
+  const sessionResponse = NextResponse.next();
+  if (opts.refreshedCookie) sessionResponse.cookies.set(opts.refreshedCookie);
+  updateSessionMock.mockResolvedValue({ response: sessionResponse, user });
   const { middleware } = await import("@/middleware");
   const req = new NextRequest(`http://localhost:3000${path}`, { method: "POST" });
   return middleware(req);
@@ -81,5 +87,36 @@ describe("middleware — rutas públicas sin sesión", () => {
     const redirect = await run("/finance", null);
     expect(unauth.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
     expect(redirect.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
+  });
+
+  describe("preserva el refresh silencioso de la cookie de sesión", () => {
+    // updateSession() refresca el access/refresh token de Supabase cuando el
+    // access token expiró, escribiendo la cookie nueva en el `response` que
+    // devuelve. Antes de este fix, los tres branches que construían un
+    // NextResponse nuevo (401, redirect a /login, redirect fuera de /login)
+    // tiraban esa cookie al piso — el navegador se quedaba con el refresh
+    // token viejo, ya rotado por Supabase, y la siguiente vez que se
+    // intentara usar fallaba: sesión cerrada sola, en silencio.
+    const cookie = { name: "sb-access-token", value: "refrescada-123" };
+
+    it("sobrevive en el 401 de una API sin sesión", async () => {
+      const res = await run("/api/finance/balance", null, { refreshedCookie: cookie });
+      expect(res.cookies.get("sb-access-token")?.value).toBe("refrescada-123");
+    });
+
+    it("sobrevive en el redirect a /login", async () => {
+      const res = await run("/finance", null, { refreshedCookie: cookie });
+      expect(res.cookies.get("sb-access-token")?.value).toBe("refrescada-123");
+    });
+
+    it("sobrevive en el redirect fuera de /login", async () => {
+      const res = await run("/login", { id: "u1" }, { refreshedCookie: cookie });
+      expect(res.cookies.get("sb-access-token")?.value).toBe("refrescada-123");
+    });
+
+    it("sobrevive en el paso normal (con sesión, ruta protegida)", async () => {
+      const res = await run("/finance", { id: "u1" }, { refreshedCookie: cookie });
+      expect(res.cookies.get("sb-access-token")?.value).toBe("refrescada-123");
+    });
   });
 });

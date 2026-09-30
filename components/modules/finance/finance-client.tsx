@@ -72,6 +72,22 @@ export function FinanceClient() {
     loadBalance();
   }, [loadBalance, reloadKey]);
 
+  // `selectedSource` es una foto fija tomada al hacer click en la tarjeta.
+  // Sin este efecto, registrar una transacción dentro del modal actualizaba
+  // la lista de movimientos (que se recarga sola) pero el "Saldo" grande y
+  // la gráfica de evolución seguían mostrando el balance de ANTES de esa
+  // transacción hasta cerrar y reabrir el modal — `onChanged` sí llama a
+  // `loadBalance()`, pero nada volvía a leer ese balance fresco hacia
+  // `selectedSource`. Aquí se resincroniza cada vez que `balance` cambia.
+  React.useEffect(() => {
+    if (!balance || !selectedSource) return;
+    const fresh = balance.sources.find((s) => s.id === selectedSource.id);
+    if (fresh && fresh.balance !== selectedSource.balance) {
+      setSelectedSource(fresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balance]);
+
   function openAddForActiveTab() {
     if (tab === "debts") setDebtDialog(true);
     else if (tab === "assets") setAssetDialog(true);

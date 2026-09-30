@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 /** DELETE /api/nutrition/log/item/[id] */
 export const DELETE = withAuth<{ id: string }>(async ({ params }) => {
   const id = Number(params.id);
-  if (!Number.isInteger(id)) throw badRequest("id inválido");
+  if (!Number.isInteger(id) || id <= 0) throw badRequest("id inválido");
 
   const item = await prisma.nutritionMealItem.findUnique({ where: { id } });
   if (!item) throw notFound("Item no encontrado");

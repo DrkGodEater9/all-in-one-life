@@ -76,35 +76,49 @@ export function TasksClient() {
    * primero en local (la card salta al instante) y se manda el PATCH; si la
    * petición falla se restaura la instantánea previa.
    */
-  const handleMove = React.useCallback(
-    async (task: TaskDTO, quadrant: QuadrantKey) => {
-      const flags = QUADRANT_FLAGS[quadrant];
-      const snapshot = tasks;
+  const handleMove = React.useCallback(async (task: TaskDTO, quadrant: QuadrantKey) => {
+    const flags = QUADRANT_FLAGS[quadrant];
+    // Revert por id, no snapshot del array completo: si otra tarjeta cambia
+    // (otro drag, completarla, borrarla) MIENTRAS este PATCH está en vuelo
+    // y el PATCH falla, un `setTasks(snapshot)` con el array entero pisaría
+    // ese otro cambio ya aplicado y confirmado — el usuario vería su otra
+    // acción "deshacerse" sola, sin error visible para ella. Guardar solo
+    // los flags anteriores de ESTA tarea y revertir solo esa entrada evita
+    // el problema sin importar qué más haya cambiado mientras tanto.
+    const previousFlags = { urgent: task.urgent, important: task.important };
 
+    setTasks((current) =>
+      current.map((item) =>
+        item.id === task.id
+          ? { ...item, ...flags, quadrant: quadrantOf(flags.urgent, flags.important) }
+          : item
+      )
+    );
+
+    try {
+      const updated = await api.patch<TaskDTO>(`/tasks/${task.id}`, flags);
+      setTasks((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
+    } catch (error) {
       setTasks((current) =>
         current.map((item) =>
           item.id === task.id
-            ? { ...item, ...flags, quadrant: quadrantOf(flags.urgent, flags.important) }
+            ? {
+                ...item,
+                ...previousFlags,
+                quadrant: quadrantOf(previousFlags.urgent, previousFlags.important),
+              }
             : item
         )
       );
-
-      try {
-        const updated = await api.patch<TaskDTO>(`/tasks/${task.id}`, flags);
-        setTasks((current) =>
-          current.map((item) => (item.id === updated.id ? updated : item))
-        );
-      } catch (error) {
-        setTasks(snapshot);
-        toast({
-          variant: "destructive",
-          title: "No se pudo mover la tarea",
-          description: errorMessage(error, "El cambio se revirtió."),
-        });
-      }
-    },
-    [tasks]
-  );
+      toast({
+        variant: "destructive",
+        title: "No se pudo mover la tarea",
+        description: errorMessage(error, "El cambio se revirtió."),
+      });
+    }
+  }, []);
 
   // ─────────────────────────────────────
   // Estado, borrado y guardado
@@ -113,7 +127,7 @@ export function TasksClient() {
   const handleAdvanceStatus = React.useCallback(
     async (task: TaskDTO) => {
       const status: TaskStatus = nextStatus(task.status);
-      const snapshot = tasks;
+      const previousStatus = task.status; // revert por id, no snapshot del array
 
       setTasks((current) =>
         current.map((item) => (item.id === task.id ? { ...item, status } : item))
@@ -127,8 +141,6 @@ export function TasksClient() {
           current.map((item) => (item.id === updated.id ? updated : item))
         );
 
-        // Al completar una tarea recurrente el servidor crea la siguiente
-        // ocurrencia: hay que releer para que aparezca en la matriz.
         if (status === "done" && updated.recurrence) {
           await refresh();
           toast({
@@ -137,7 +149,11 @@ export function TasksClient() {
           });
         }
       } catch (error) {
-        setTasks(snapshot);
+        setTasks((current) =>
+          current.map((item) =>
+            item.id === task.id ? { ...item, status: previousStatus } : item
+          )
+        );
         toast({
           variant: "destructive",
           title: "No se pudo cambiar el estado",
@@ -145,29 +161,28 @@ export function TasksClient() {
         });
       }
     },
-    [tasks, refresh]
+    [refresh]
   );
 
-  const handleDelete = React.useCallback(
-    async (task: TaskDTO) => {
-      if (!window.confirm(`¿Eliminar la tarea «${task.title}»?`)) return;
-      const snapshot = tasks;
-      setTasks((current) => current.filter((item) => item.id !== task.id));
+  const handleDelete = React.useCallback(async (task: TaskDTO) => {
+    if (!window.confirm(`¿Eliminar la tarea «${task.title}»?`)) return;
+    setTasks((current) => current.filter((item) => item.id !== task.id));
 
-      try {
-        await api.delete(`/tasks/${task.id}`);
-        toast({ title: "Tarea eliminada" });
-      } catch (error) {
-        setTasks(snapshot);
-        toast({
-          variant: "destructive",
-          title: "No se pudo eliminar la tarea",
-          description: errorMessage(error, "Inténtalo de nuevo."),
-        });
-      }
-    },
-    [tasks]
-  );
+    try {
+      await api.delete(`/tasks/${task.id}`);
+      toast({ title: "Tarea eliminada" });
+    } catch (error) {
+      // Reinserta solo esta tarea (si no volvió por otra vía mientras tanto).
+      setTasks((current) =>
+        current.some((item) => item.id === task.id) ? current : [...current, task]
+      );
+      toast({
+        variant: "destructive",
+        title: "No se pudo eliminar la tarea",
+        description: errorMessage(error, "Inténtalo de nuevo."),
+      });
+    }
+  }, []);
 
   const handleCreateLabel = React.useCallback(
     async (name: string, color: LabelColor): Promise<TaskLabelDTO | null> => {

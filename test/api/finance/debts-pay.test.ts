@@ -18,9 +18,12 @@ function debt(overrides: Record<string, unknown> = {}) {
 }
 
 describe("POST /api/finance/debts/[id]/pay", () => {
-  it("crea el pago e incrementa amountPaid sin saldar si queda pendiente", async () => {
+  it("crea el pago e incrementa amountPaid (vía increment, no valor absoluto) sin saldar si queda pendiente", async () => {
     prismaMock.financeDebt.findUnique.mockResolvedValue(debt());
     prismaMock.financeDebtPayment.create.mockResolvedValue({ id: 5, debtId: 1, amount: new Prisma.Decimal("20") });
+    // Las dos llamadas a update devuelven el mismo estado ya incrementado:
+    // el código lee amountPaid de la primera (el increment) para decidir
+    // isSettled en la segunda.
     prismaMock.financeDebt.update.mockResolvedValue(
       debt({ amountPaid: new Prisma.Decimal("60") })
     );
@@ -36,8 +39,15 @@ describe("POST /api/finance/debts/[id]/pay", () => {
     expect(prismaMock.financeDebtPayment.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ debtId: 1, amount: 20 }) })
     );
-    expect(prismaMock.financeDebt.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { amountPaid: 60, isSettled: false } })
+    // Increment, no escritura absoluta: así dos pagos concurrentes no se
+    // pisan entre sí (ver comentario en la ruta).
+    expect(prismaMock.financeDebt.update).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ data: { amountPaid: { increment: 20 } } })
+    );
+    expect(prismaMock.financeDebt.update).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ data: { isSettled: false } })
     );
     expect(body.debt.isSettled).toBe(false);
   });
@@ -57,8 +67,13 @@ describe("POST /api/finance/debts/[id]/pay", () => {
     );
 
     expect(status).toBe(201);
-    expect(prismaMock.financeDebt.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { amountPaid: 100, isSettled: true } })
+    expect(prismaMock.financeDebt.update).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ data: { amountPaid: { increment: 60 } } })
+    );
+    expect(prismaMock.financeDebt.update).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ data: { isSettled: true } })
     );
   });
 

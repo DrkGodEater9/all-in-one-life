@@ -1,7 +1,8 @@
+import crypto from "node:crypto";
 import type { NextRequest } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { ApiError, toErrorResponse, unauthorized } from "@/lib/http";
+import { toErrorResponse, unauthorized } from "@/lib/http";
 
 /** Usuario autenticado o null. Para Server Components. */
 export async function getUser(): Promise<User | null> {
@@ -72,8 +73,21 @@ export function withRoute<P extends Record<string, string | string[]> = Record<s
 /** Valida el header Authorization de los cron jobs de Vercel. */
 export function assertCronSecret(req: NextRequest) {
   const expected = process.env.CRON_SECRET;
-  if (!expected) throw new ApiError(500, "CRON_SECRET no configurado");
-  if (req.headers.get("authorization") !== `Bearer ${expected}`) {
-    throw unauthorized("Cron no autorizado");
+  // Genérico y sin exponer si CRON_SECRET está configurado o no: esta ruta
+  // es la única que no exige sesión, así que la responde cualquiera y no
+  // conviene que el mensaje delate detalles de configuración del servidor.
+  const unauthorizedResponse = () => unauthorized("No autorizado");
+  if (!expected) throw unauthorizedResponse();
+
+  const provided = req.headers.get("authorization") ?? "";
+  const expectedHeader = `Bearer ${expected}`;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expectedHeader);
+  // Comparación en tiempo constante: un `!==` normal corta en la primera
+  // diferencia de byte, filtrando por temporización cuánto del secreto
+  // acertó un intento. timingSafeEqual exige igual longitud, así que se
+  // compara el largo aparte (eso sí es seguro de filtrar).
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    throw unauthorizedResponse();
   }
 }

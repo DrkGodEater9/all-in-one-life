@@ -44,7 +44,7 @@ const bodySchema = z
  */
 export const POST = withAuth<{ id: string }>(async ({ req, params }) => {
   const mealLogId = Number(params.id);
-  if (!Number.isInteger(mealLogId)) throw badRequest("id de comida inválido");
+  if (!Number.isInteger(mealLogId) || mealLogId <= 0) throw badRequest("id de comida inválido");
 
   const body = bodySchema.parse(await req.json());
 

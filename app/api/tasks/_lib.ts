@@ -355,9 +355,10 @@ export function nextOccurrence(
 /** Hoy a medianoche UTC, comparable con una columna @db.Date. */
 function todayUTC(): Date {
   const now = new Date();
-  return new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  );
+  // getUTC*, no los getters locales: si el proceso corre con TZ != UTC, la
+  // versión anterior metía el día LOCAL dentro de Date.UTC(...), corriendo
+  // la fecha resultante.
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
 /**

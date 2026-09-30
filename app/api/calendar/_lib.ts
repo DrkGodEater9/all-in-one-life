@@ -62,7 +62,19 @@ export const eventFieldsSchema = z.object({
   time: timeSchema,
   category: categorySchema,
   location: z.string().trim().max(200).optional().nullable(),
-  meetingLink: z.string().trim().url("El link debe ser una URL válida").max(500).optional().nullable().or(z.literal("")),
+  // Sin el refine de esquema, `javascript:...`/`data:...` pasan `.url()`
+  // igual (Zod solo exige un WHATWG URL válido, no restringe el esquema) y
+  // esto se renderiza luego como <a href={meetingLink}> sin sanitizar —
+  // stored XSS. Solo http/https.
+  meetingLink: z
+    .string()
+    .trim()
+    .url("El link debe ser una URL válida")
+    .max(500)
+    .refine((v) => /^https?:\/\//i.test(v), "Solo se permiten enlaces http:// o https://")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   notes: z.string().trim().max(1000).optional().nullable(),
 });
 

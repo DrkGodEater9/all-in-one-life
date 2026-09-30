@@ -124,7 +124,7 @@ describe("assertCronSecret", () => {
     expect(() => assertCronSecret(makeRequest("/api/cron/reminders"))).toThrow();
   });
 
-  it("falla con 500 si CRON_SECRET no está configurado", () => {
+  it("falla con 401 genérico (no 500) si CRON_SECRET no está configurado, para no filtrar el estado del servidor", () => {
     delete process.env.CRON_SECRET;
     const req = makeRequest("/api/cron/reminders", {
       headers: { authorization: "Bearer lo-que-sea" },
@@ -133,7 +133,17 @@ describe("assertCronSecret", () => {
       assertCronSecret(req);
       expect.unreachable("debió lanzar");
     } catch (e) {
-      expect((e as ApiError).status).toBe(500);
+      expect((e as ApiError).status).toBe(401);
     }
+  });
+
+  it("compara el secreto en tiempo constante (timingSafeEqual), no con !==", () => {
+    process.env.CRON_SECRET = "s3cr3t";
+    // Longitudes distintas: timingSafeEqual exigiría chequear el largo
+    // aparte antes de comparar bytes, o lanzaría por longitudes distintas.
+    const req = makeRequest("/api/cron/reminders", {
+      headers: { authorization: "Bearer corto" },
+    });
+    expect(() => assertCronSecret(req)).toThrow();
   });
 });

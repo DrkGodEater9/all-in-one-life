@@ -112,12 +112,12 @@ describe("GET /api/cron/reminders", () => {
     expect(prismaMock.calendarReminder.updateMany).not.toHaveBeenCalled();
   });
 
-  it("falla con 500 si CRON_SECRET no está configurado en el entorno", async () => {
+  it("falla con 401 genérico (no 500) si CRON_SECRET no está configurado, para no filtrar el estado del servidor", async () => {
     delete process.env.CRON_SECRET;
     const req = makeRequest("/api/cron/reminders", {
       headers: { authorization: "Bearer lo-que-sea" },
     });
     const { status } = await callRoute(GET, req);
-    expect(status).toBe(500);
+    expect(status).toBe(401);
   });
 });

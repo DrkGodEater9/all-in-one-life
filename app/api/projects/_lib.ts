@@ -22,7 +22,19 @@ export const titleSchema = z.string().trim().min(1, "El título es obligatorio")
 export const descriptionSchema = z.string().trim().max(5000);
 export const tagNameSchema = z.string().trim().min(1).max(50);
 export const categoryNameSchema = z.string().trim().min(1).max(60);
-export const urlSchema = z.string().trim().url("URL inválida").max(2000);
+/**
+ * `.url()` de Zod solo exige que el string construya un WHATWG URL válido —
+ * NO restringe el esquema. `javascript:alert(1)` y `data:text/html,...`
+ * pasan igual. Como esto se guarda y luego se renderiza como
+ * `<a href={link.url}>` sin sanitizar, sin este refine cualquiera podría
+ * guardar un link que ejecute JS al hacer click (stored XSS). Solo http/https.
+ */
+export const urlSchema = z
+  .string()
+  .trim()
+  .url("URL inválida")
+  .max(2000)
+  .refine((v) => /^https?:\/\//i.test(v), "Solo se permiten enlaces http:// o https://");
 
 /** Todo lo que el cliente necesita de un proyecto, siempre en la misma forma. */
 export const projectInclude = {

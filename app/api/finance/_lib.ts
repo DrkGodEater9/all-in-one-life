@@ -161,7 +161,10 @@ export function num(value: Prisma.Decimal | number | string | null | undefined):
 
 /** Redondea a 2 decimales, que es la precisión de las columnas Decimal(12,2). */
 export function money(value: number): number {
-  return Math.round(value * 100) / 100;
+  // +Number.EPSILON: `1.005 * 100` es en realidad 100.49999999999999 en
+  // punto flotante, así que Math.round lo trunca a 100 (1.00) en vez de
+  // redondear a 1.01. El epsilon empuja esos casos límite al lado correcto.
+  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
 /**

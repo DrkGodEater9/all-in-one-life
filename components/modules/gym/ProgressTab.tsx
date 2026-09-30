@@ -48,7 +48,12 @@ export function ProgressTab() {
       try {
         const [options, streakData] = await Promise.all([
           api.get<ExerciseOption[]>("/gym/exercises"),
-          api.get<Streak>("/gym/streak"),
+          // Mes local del cliente explícito, no el default del servidor
+          // (mismo motivo que nutrition/streak: evita el corrimiento de un
+          // día cerca de fin de mes en husos negativos como Bogotá).
+          api.get<Streak>(
+            `/gym/streak?month=${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
+          ),
         ]);
         if (!active) return;
         setExercises(options);
