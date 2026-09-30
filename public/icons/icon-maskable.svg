@@ -1,11 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Personal OS">
-  <!--
-    Icono maskable: el SO recorta este cuadrado a un círculo/squircle propio,
-    así que el fondo llega hasta el borde y la marca se mantiene dentro de la
-    "safe zone" estándar (círculo del 80% central, radio ~205px a 512px) para
-    no perder nada al recortar.
-  -->
-  <rect width="512" height="512" fill="#0F0F11"/>
-  <circle cx="256" cy="256" r="140" fill="none" stroke="#7C6AF7" stroke-width="26"/>
-  <circle cx="256" cy="256" r="50" fill="#7C6AF7"/>
+  <rect width="512" height="512" fill="#7C6AF7"/>
+  <g fill="#FFFFFF" transform="translate(256 256) scale(0.62) translate(-256 -256)">
+    <rect x="120" y="120" width="124" height="272" rx="30"/>
+    <rect x="268" y="120" width="124" height="124" rx="30"/>
+    <rect x="268" y="268" width="124" height="124" rx="30"/>
+  </g>
 </svg>
