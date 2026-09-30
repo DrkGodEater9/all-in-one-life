@@ -57,7 +57,12 @@ describe("middleware — rutas públicas sin sesión", () => {
     expect(res.headers.get("location")).not.toContain("/login");
   });
 
-  it("adjunta una CSP con nonce distinto en cada request", async () => {
+  it("adjunta la misma CSP (sin nonce) en cada request", async () => {
+    // Sin nonce a propósito: Next 14.2.35 no lo aplica a los <script> que el
+    // propio App Router inyecta (RSC streaming, next-themes), y con
+    // 'strict-dynamic' eso bloqueaba absolutamente todo el JS — comprobado
+    // en un build real, 0 de 17 <script> llevaban el atributo, página en
+    // blanco sin error visible. Ver el comentario de CSP en middleware.ts.
     const res1 = await run("/finance", { id: "u1" });
     const res2 = await run("/finance", { id: "u1" });
 
@@ -66,8 +71,9 @@ describe("middleware — rutas públicas sin sesión", () => {
 
     expect(csp1).toContain("default-src 'self'");
     expect(csp1).toContain("frame-ancestors 'none'");
-    expect(csp1).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
-    expect(csp1).not.toBe(csp2); // nonce nuevo por request
+    expect(csp1).toContain("script-src 'self' 'unsafe-inline'");
+    expect(csp1).not.toMatch(/nonce-/);
+    expect(csp1).toBe(csp2); // estática, no cambia por request
   });
 
   it("adjunta la CSP incluso en el 401 y en los redirects", async () => {

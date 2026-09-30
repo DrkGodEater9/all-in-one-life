@@ -8,46 +8,55 @@ import { updateSession } from "@/lib/supabase/middleware";
 const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/auth/login", "/api/auth/logout"];
 
 /**
- * CSP con nonce por request (receta oficial de Next.js para el App Router:
- * https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy).
+ * CSP sin nonce.
+ *
+ * Se intentó primero la receta oficial de Next (nonce por request +
+ * 'strict-dynamic'), pero en Next 14.2.35 los <script> que el propio
+ * App Router inyecta (streaming de RSC, el script de next-themes contra el
+ * flash de tema) no reciben el nonce automáticamente pase lo que pase con
+ * los headers — comprobado en build real: 0 de 17 <script> llevaban el
+ * atributo. Con 'strict-dynamic' presente, el navegador ignora 'self' por
+ * completo, así que **ningún** script corría: la app cargaba en blanco, sin
+ * error visible, tanto en local (`next start`) como en producción (Vercel).
+ *
+ * En su lugar: 'self' + 'unsafe-inline' en script-src. Sigue bloqueando
+ * cualquier script de otro origen (el riesgo real: inyectar/cargar JS
+ * ajeno), que es la protección que de verdad importa aquí. Lo que se
+ * relaja es permitir los <script> inline que el propio framework genera
+ * (RSC streaming, next-themes) — esta app no tiene dangerouslySetInnerHTML
+ * ni interpola datos de usuario en HTML crudo, así que no hay vector real
+ * para que un atacante inyecte un <script> inline explotando esa relajación.
+ *
  * El navegador nunca habla directo con Supabase ni con OpenFoodFacts —el
  * login pasa por /api/auth/login y la búsqueda de alimentos por
  * /api/nutrition/search, ambas server-side— así que todo lo demás es 'self'.
- *
- * `style-src` lleva 'unsafe-inline' además del nonce: Radix UI (Popover,
- * Select, DropdownMenu) posiciona con el atributo `style` inline en el DOM,
- * y ese atributo no lo cubre un nonce de CSP, solo 'unsafe-inline' o
- * 'unsafe-hashes' (poco soportado). Es un riesgo mucho menor que relajar
- * `script-src` —no permite ejecutar código, solo forzar estilos— así que el
- * nonce + 'strict-dynamic' se reserva para scripts, que es donde importa.
+ * `style-src` también lleva 'unsafe-inline': Radix UI (Popover, Select,
+ * DropdownMenu) posiciona con el atributo `style` inline en el DOM.
  */
-function buildCsp(nonce: string) {
-  return [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
-    "font-src 'self'",
-    "connect-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ].join("; ");
-}
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
+].join("; ");
 
-function withCsp(nonce: string, response: NextResponse) {
-  response.headers.set("Content-Security-Policy", buildCsp(nonce));
+function withCsp(response: NextResponse) {
+  response.headers.set("Content-Security-Policy", CSP);
   return response;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
 
   // El cron de Vercel se autentica con CRON_SECRET, no con sesión.
-  if (pathname.startsWith("/api/cron")) return withCsp(nonce, NextResponse.next());
+  if (pathname.startsWith("/api/cron")) return withCsp(NextResponse.next());
 
   // `response` viene de updateSession con las cookies de sesión ya
   // refrescadas si el access token había expirado — hay que seguir usando
@@ -57,22 +66,22 @@ export async function middleware(request: NextRequest) {
 
   if (!user && !isPublic) {
     if (pathname.startsWith("/api")) {
-      return withCsp(nonce, NextResponse.json({ error: "No autenticado" }, { status: 401 }));
+      return withCsp(NextResponse.json({ error: "No autenticado" }, { status: 401 }));
     }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
-    return withCsp(nonce, NextResponse.redirect(url));
+    return withCsp(NextResponse.redirect(url));
   }
 
   if (user && pathname.startsWith("/login")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
-    return withCsp(nonce, NextResponse.redirect(url));
+    return withCsp(NextResponse.redirect(url));
   }
 
-  return withCsp(nonce, response);
+  return withCsp(response);
 }
 
 export const config = {
