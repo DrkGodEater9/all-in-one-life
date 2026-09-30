@@ -2,7 +2,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface StatProps {
-  label: string;
+  /** Opcional: se omite cuando el contexto ya deja claro qué es la cifra (ej. el título de la tarjeta que la contiene). */
+  label?: string;
   value: React.ReactNode;
   sub?: React.ReactNode;
   className?: string;
@@ -17,7 +18,7 @@ function Stat({ label, value, sub, className, valueClassName }: StatProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <div className={cn("stat-value", valueClassName)}>{value}</div>
-      <div className="stat-label">{label}</div>
+      {label ? <div className="stat-label">{label}</div> : null}
       {sub ? <div className="text-xs text-text-3">{sub}</div> : null}
     </div>
   );

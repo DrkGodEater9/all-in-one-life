@@ -73,6 +73,105 @@ export function buildBalanceSeries(
   return points;
 }
 
+export interface SingleBalancePoint {
+  date: string;
+  value: number;
+}
+
+/** Igual que `buildBalanceSeries`, pero reconstruido hacia atrás para UNA sola fuente. */
+export function buildSingleSourceSeries(
+  transactions: Transaction[],
+  currentBalance: number,
+  sourceId: number
+): SingleBalancePoint[] {
+  const deltasByDate = new Map<string, number>();
+  let totalDelta = 0;
+
+  for (const tx of transactions) {
+    if (tx.sourceId !== sourceId) continue;
+    const delta = tx.type === "income" ? tx.amount : -tx.amount;
+    const key = dateKeyOf(tx.date);
+    deltasByDate.set(key, (deltasByDate.get(key) ?? 0) + delta);
+    totalDelta += delta;
+  }
+
+  const dates = Array.from(deltasByDate.keys()).sort();
+  if (dates.length === 0) return [];
+
+  let value = currentBalance - totalDelta;
+  const points: SingleBalancePoint[] = [];
+  for (const date of dates) {
+    value += deltasByDate.get(date)!;
+    points.push({ date, value: Math.round(value * 100) / 100 });
+  }
+  return points;
+}
+
+/** Línea de saldo de una sola billetera (Diario, Ahorros o un crédito). */
+export function SingleBalanceChart({ data }: { data: SingleBalancePoint[] }) {
+  if (data.length === 0) {
+    return (
+      <EmptyState
+        icon={LineIcon}
+        title="Sin histórico todavía"
+        description="Registra movimientos para ver cómo evoluciona el saldo."
+      />
+    );
+  }
+
+  return (
+    <div className="h-56 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+          <CartesianGrid stroke="var(--color-border)" strokeDasharray="2 4" vertical={false} />
+          <XAxis
+            dataKey="date"
+            tickFormatter={(value: string) => formatDateLabel(value)}
+            tick={{ fill: "var(--color-text-3)", fontSize: 10 }}
+            axisLine={{ stroke: "var(--color-border)" }}
+            tickLine={false}
+            minTickGap={24}
+          />
+          <YAxis
+            tick={{ fill: "var(--color-text-3)", fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            width={56}
+            tickFormatter={(value: number) =>
+              new Intl.NumberFormat("es-CO", {
+                notation: "compact",
+                maximumFractionDigits: 1,
+              }).format(value)
+            }
+          />
+          <Tooltip
+            content={({ active, payload, label }) =>
+              active && payload && payload.length > 0 ? (
+                <div className="rounded-md border border-border bg-surface px-3 py-2">
+                  <p className="mb-1 text-[11px] text-text-3">
+                    {label ? formatDateLabel(String(label)) : ""}
+                  </p>
+                  <p className="font-mono text-xs tabular-nums text-text">
+                    {formatMoney((payload[0]?.value as number) ?? 0)}
+                  </p>
+                </div>
+              ) : null
+            }
+          />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="var(--color-accent)"
+            strokeWidth={2}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 interface TooltipItem {
   dataKey?: string | number;
   value?: number;

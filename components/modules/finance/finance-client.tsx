@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Plus } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
 import {
   Button,
+  Card,
+  SectionHeader,
   Skeleton,
   Stat,
   Tabs,
@@ -14,118 +16,118 @@ import {
   TabsTrigger,
   toast,
 } from "@/components/ui";
-import { TransactionsTab } from "./transactions-tab";
 import { DebtsTab } from "./debts-tab";
 import { AssetsTab } from "./assets-tab";
 import { CreditLinesTab } from "./credit-lines-tab";
-import { AddTransactionDialog } from "./add-transaction-dialog";
 import { AddDebtDialog } from "./add-debt-dialog";
 import { AssetDialog } from "./asset-dialog";
 import { AddCreditLineDialog } from "./add-credit-line-dialog";
+import { WalletDetailDialog, type WalletSource } from "./wallet-detail-dialog";
 import type { Balance } from "./types";
 
-type TabValue = "transactions" | "debts" | "assets" | "credit-lines";
+type TabValue = "wallets" | "debts" | "assets";
 
 const ADD_LABEL: Record<TabValue, string> = {
-  transactions: "Nueva transacción",
+  wallets: "Nueva línea de crédito",
   debts: "Nueva deuda",
   assets: "Nuevo activo",
-  "credit-lines": "Nueva línea de crédito",
 };
 
+/**
+ * "Mi dinero" y "Créditos" comparten la misma lógica de interacción, a
+ * pedido del usuario: todo lo que antes era la pestaña "Transacciones"
+ * (filtros, gráficas, lista, agregar) vive ahora DENTRO del detalle de cada
+ * billetera, no mezclado en una sola vista. Aquí solo se listan las
+ * tarjetas; el contenido rico vive en WalletDetailDialog / CreditLinesTab.
+ */
 export function FinanceClient() {
-  const [tab, setTab] = React.useState<TabValue>("transactions");
+  const [tab, setTab] = React.useState<TabValue>("wallets");
   const [balance, setBalance] = React.useState<Balance | null>(null);
   const [loadingBalance, setLoadingBalance] = React.useState(true);
   const [reloadKey, setReloadKey] = React.useState(0);
+  const [selectedSource, setSelectedSource] = React.useState<WalletSource | null>(null);
 
-  const [txDialog, setTxDialog] = React.useState(false);
   const [debtDialog, setDebtDialog] = React.useState(false);
   const [assetDialog, setAssetDialog] = React.useState(false);
   const [creditLineDialog, setCreditLineDialog] = React.useState(false);
 
   const reload = React.useCallback(() => setReloadKey((k) => k + 1), []);
 
-  React.useEffect(() => {
-    let cancelled = false;
+  const loadBalance = React.useCallback(() => {
     setLoadingBalance(true);
-
-    api
+    return api
       .get<Balance>("/finance/balance")
-      .then((data) => {
-        if (!cancelled) setBalance(data);
-      })
+      .then(setBalance)
       .catch((error: unknown) => {
-        if (cancelled) return;
         toast({
           variant: "destructive",
           title: "No se pudo cargar el saldo",
-          description:
-            error instanceof ApiClientError ? error.message : "Inténtalo de nuevo",
+          description: error instanceof ApiClientError ? error.message : "Inténtalo de nuevo",
         });
       })
-      .finally(() => {
-        if (!cancelled) setLoadingBalance(false);
-      });
+      .finally(() => setLoadingBalance(false));
+  }, []);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadKey]);
+  React.useEffect(() => {
+    loadBalance();
+  }, [loadBalance, reloadKey]);
 
   function openAddForActiveTab() {
-    if (tab === "transactions") setTxDialog(true);
-    else if (tab === "debts") setDebtDialog(true);
-    else if (tab === "credit-lines") setCreditLineDialog(true);
-    else setAssetDialog(true);
+    if (tab === "debts") setDebtDialog(true);
+    else if (tab === "assets") setAssetDialog(true);
+    else setCreditLineDialog(true);
   }
+
+  const daily = balance?.sources.find((s) => s.name === "daily");
+  const savings = balance?.sources.find((s) => s.name === "savings");
 
   return (
     <div className="space-y-6 pb-24 md:pb-8">
-      {/* ── Header: saldos ─────────────────────────── */}
-      <header className="space-y-3 border-b border-border pb-5">
-        {loadingBalance && !balance ? (
-          <div className="flex gap-10">
-            <Skeleton className="h-14 w-32" />
-            <Skeleton className="h-14 w-32" />
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-x-10 gap-y-4">
-              <Stat
-                label="Diario"
-                value={formatMoney(balance?.daily ?? 0)}
-              />
-              <Stat
-                label="Ahorros"
-                value={formatMoney(balance?.savings ?? 0)}
-              />
-            </div>
-            <p className="text-sm text-text-2">
-              Total combinado{" "}
-              <span className="font-mono tabular-nums text-text-2">
-                {formatMoney(balance?.total ?? 0)}
-              </span>
-            </p>
-          </>
-        )}
-      </header>
-
       {/* ── Tabs ───────────────────────────────────── */}
       <Tabs value={tab} onValueChange={(value) => setTab(value as TabValue)}>
         <TabsList>
-          <TabsTrigger value="transactions">Transacciones</TabsTrigger>
+          <TabsTrigger value="wallets">Billeteras</TabsTrigger>
           <TabsTrigger value="debts">Deudas</TabsTrigger>
           <TabsTrigger value="assets">Activos</TabsTrigger>
-          <TabsTrigger value="credit-lines">Créditos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="transactions">
-          <TransactionsTab
-            balance={balance}
-            reloadKey={reloadKey}
-            onChanged={reload}
-          />
+        <TabsContent value="wallets" className="space-y-8">
+          <div className="space-y-3">
+            <SectionHeader title="Mi dinero" />
+            {loadingBalance && !balance ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Skeleton className="h-28 w-full" />
+                <Skeleton className="h-28 w-full" />
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { source: daily, label: "Diario" },
+                  { source: savings, label: "Ahorros" },
+                ].map(({ source, label }) => (
+                  <Card key={label} className="p-4">
+                    <button
+                      type="button"
+                      disabled={!source}
+                      onClick={() => source && setSelectedSource(source)}
+                      className="w-full space-y-3 text-left disabled:opacity-50"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-text">{label}</p>
+                        <Wallet className="h-4 w-4 shrink-0 text-text-3" />
+                      </div>
+                      <Stat value={formatMoney(source?.balance ?? 0)} />
+                    </button>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <SectionHeader title="Créditos" />
+            <CreditLinesTab reloadKey={reloadKey} onChanged={reload} />
+          </div>
         </TabsContent>
 
         <TabsContent value="debts">
@@ -134,10 +136,6 @@ export function FinanceClient() {
 
         <TabsContent value="assets">
           <AssetsTab reloadKey={reloadKey} onChanged={reload} />
-        </TabsContent>
-
-        <TabsContent value="credit-lines">
-          <CreditLinesTab reloadKey={reloadKey} onChanged={reload} />
         </TabsContent>
       </Tabs>
 
@@ -152,11 +150,15 @@ export function FinanceClient() {
         <Plus className="h-5 w-5" />
       </Button>
 
-      <AddTransactionDialog
-        open={txDialog}
-        onOpenChange={setTxDialog}
-        balance={balance}
-        onCreated={reload}
+      <WalletDetailDialog
+        source={selectedSource}
+        onOpenChange={(open) => {
+          if (!open) setSelectedSource(null);
+        }}
+        onChanged={() => {
+          loadBalance();
+          reload();
+        }}
       />
       <AddDebtDialog
         open={debtDialog}
@@ -164,11 +166,7 @@ export function FinanceClient() {
         balance={balance}
         onCreated={reload}
       />
-      <AssetDialog
-        open={assetDialog}
-        onOpenChange={setAssetDialog}
-        onSaved={reload}
-      />
+      <AssetDialog open={assetDialog} onOpenChange={setAssetDialog} onSaved={reload} />
       <AddCreditLineDialog
         open={creditLineDialog}
         onOpenChange={setCreditLineDialog}

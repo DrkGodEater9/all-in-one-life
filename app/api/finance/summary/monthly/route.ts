@@ -12,20 +12,26 @@ import {
   toDateKeyUTC,
 } from "../../_lib";
 
-const querySchema = z.object({ month: monthKeySchema.optional() });
+const querySchema = z.object({
+  month: monthKeySchema.optional(),
+  sourceId: z.coerce.number().int().positive().optional(),
+});
 
 /**
- * GET /api/finance/summary/monthly ?month=YYYY-MM (por defecto, el mes actual)
+ * GET /api/finance/summary/monthly ?month=YYYY-MM&sourceId= (ambos opcionales)
  *
  * Devuelve totales de ingresos, gastos, neto y el desglose de gastos por
- * categoría — es lo que alimenta la gráfica de dona.
+ * categoría — es lo que alimenta la gráfica de dona. `sourceId` limita el
+ * resumen a una sola billetera (Diario/Ahorros); sin él, es el combinado.
  */
 export const GET = withAuth(async ({ searchParams }) => {
-  const { month = currentMonthKey() } = querySchema.parse(queryObject(searchParams));
+  const { month = currentMonthKey(), sourceId } = querySchema.parse(
+    queryObject(searchParams)
+  );
   const { start, end } = monthRange(month);
 
   const transactions = await prisma.financeTransaction.findMany({
-    where: { date: { gte: start, lt: end } },
+    where: { date: { gte: start, lt: end }, ...(sourceId ? { sourceId } : {}) },
     select: { type: true, amount: true, category: true },
   });
 
