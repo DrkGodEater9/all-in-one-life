@@ -5,15 +5,27 @@ import type { Config } from "tailwindcss";
  * canales sueltos. Tailwind no sabe aplicar el modificador `/NN` a un `var()`
  * plano: descarta la clase en silencio y no emite CSS. Envolverlo en una función
  * con `opacityValue` nos deja seguir escribiendo `bg-accent/85` y que funcione.
+ *
+ * Bug real que estuvo en producción: cuando la clase se usa SIN modificador
+ * (`bg-accent`, el 95% de los usos), Tailwind no llama con
+ * `opacityValue: undefined` — llama con el placeholder de compatibilidad
+ * `"var(--tw-bg-opacity)"` (para que utilidades legacy `bg-opacity-*` sigan
+ * funcionando). `Number("var(--tw-bg-opacity)")` es `NaN`, así que el color
+ * salía `color-mix(in srgb, var(--color-accent) NaN%, transparent)` — CSS
+ * inválido, el navegador lo descarta y cae al estilo por defecto del
+ * elemento. Por eso el botón "Entrar" salía blanco en vez de violeta: no es
+ * un tema de diseño, faltaba esta validación.
  */
 const token = (name: string) =>
   // Tailwind acepta funciones como valor de color en runtime, pero su tipo
   // `RecursiveKeyValuePair` solo admite strings. El cast mantiene el tipado del
   // resto de la config sin renunciar al comportamiento.
-  ((({ opacityValue }: { opacityValue?: string }) =>
-    opacityValue === undefined
-      ? `var(--color-${name})`
-      : `color-mix(in srgb, var(--color-${name}) ${Number(opacityValue) * 100}%, transparent)`) as unknown) as string;
+  ((({ opacityValue }: { opacityValue?: string }) => {
+    const pct = opacityValue === undefined ? NaN : Number(opacityValue) * 100;
+    return Number.isFinite(pct)
+      ? `color-mix(in srgb, var(--color-${name}) ${pct}%, transparent)`
+      : `var(--color-${name})`;
+  }) as unknown) as string;
 
 const config: Config = {
   darkMode: "class",
