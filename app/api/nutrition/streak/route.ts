@@ -2,18 +2,26 @@ import { withAuth } from "@/lib/auth";
 import { ok } from "@/lib/http";
 import { prisma } from "@/lib/db";
 import { parseDateKey } from "@/lib/utils";
-import { dbDateKey, shiftDateKey, todayKey } from "../_shared";
+import { dateKeySchema, dbDateKey, shiftDateKey, todayKey } from "../_shared";
 
 const LOOKBACK_DAYS = 400;
 
 /**
- * GET /api/nutrition/streak
+ * GET /api/nutrition/streak?date=
+ *
  * Días consecutivos hasta hoy con al menos un item registrado.
  * Si hoy todavía no hay nada, la racha se cuenta desde ayer: el día en curso
  * no debe romperla antes de la primera comida.
+ *
+ * `date` es opcional y cae a `todayKey()` (UTC del servidor) si falta, pero
+ * el cliente SIEMPRE debe mandar su día local: en husos negativos (Bogotá,
+ * UTC-5) el UTC del servidor ya es "mañana" entre las 19:00 y medianoche
+ * hora local, así que sin este parámetro `loggedToday` sale falso aunque el
+ * usuario acabe de registrar algo. Mismo patrón que `readDateParam`.
  */
-export const GET = withAuth(async () => {
-  const today = todayKey();
+export const GET = withAuth(async ({ searchParams }) => {
+  const rawDate = searchParams.get("date");
+  const today = rawDate ? dateKeySchema.parse(rawDate) : todayKey();
   const from = parseDateKey(shiftDateKey(today, -LOOKBACK_DAYS));
 
   const meals = await prisma.nutritionMealLog.findMany({

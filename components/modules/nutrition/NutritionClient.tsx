@@ -37,7 +37,7 @@ export function NutritionClient() {
       const [s, l, st] = await Promise.all([
         api.get<Summary>(`/nutrition/summary${qs({ date: key })}`),
         api.get<DayLog>(`/nutrition/log${qs({ date: key })}`),
-        api.get<Streak>("/nutrition/streak"),
+        api.get<Streak>(`/nutrition/streak${qs({ date: key })}`),
       ]);
       setSummary(s);
       setLog(l);
