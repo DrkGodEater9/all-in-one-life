@@ -54,6 +54,11 @@ export const PUT = withAuth<{ id: string }>(async ({ req, params }) => {
     });
     await syncTaskLabels(tx, id, labelIds);
 
+    // La regla vieja solo puede borrarse una vez que la tarea dejó de apuntarla.
+    if (current.recurrenceId && current.recurrenceId !== recurrenceId) {
+      await deleteRuleIfOrphan(tx, current.recurrenceId, null);
+    }
+
     const updated = await findTaskOrThrow(id, tx);
     if (becomesDone) await spawnNextOccurrence(tx, updated);
     return updated;
@@ -101,14 +106,16 @@ export const PATCH = withAuth<{ id: string }>(async ({ req, params }) => {
   if (body.time !== undefined) data.time = body.time ? parseTime(body.time) : null;
 
   const task = await prisma.$transaction(async (tx) => {
+    let nextRecurrenceId = current.recurrenceId;
+
     if (body.recurrence !== undefined) {
-      const recurrenceId = await applyRecurrence(
+      nextRecurrenceId = await applyRecurrence(
         tx,
         current.recurrenceId,
         body.recurrence ?? null
       );
-      data.recurrence = recurrenceId
-        ? { connect: { id: recurrenceId } }
+      data.recurrence = nextRecurrenceId
+        ? { connect: { id: nextRecurrenceId } }
         : { disconnect: true };
     }
 
@@ -117,6 +124,11 @@ export const PATCH = withAuth<{ id: string }>(async ({ req, params }) => {
     if (body.labelIds !== undefined || body.labelNames !== undefined) {
       const labelIds = await resolveLabelIds(tx, body);
       await syncTaskLabels(tx, id, labelIds);
+    }
+
+    // La regla vieja solo puede borrarse una vez que la tarea dejó de apuntarla.
+    if (current.recurrenceId && current.recurrenceId !== nextRecurrenceId) {
+      await deleteRuleIfOrphan(tx, current.recurrenceId, null);
     }
 
     const updated = await findTaskOrThrow(id, tx);

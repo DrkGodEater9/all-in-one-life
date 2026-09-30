@@ -22,9 +22,13 @@ export function makeRequest(
   });
 }
 
+// `any` a propósito: los handlers reales llegan tipados como
+// withAuth<{ id: string }> o withAuth<Record<string, string>>, formas que no
+// unifican entre sí por varianza de parámetros. Este helper es solo para
+// invocarlos en tests, no participa de la seguridad de tipos de la app.
 type Handler = (
   req: NextRequest,
-  segment?: { params: Record<string, string> }
+  segment?: { params: any }
 ) => Promise<Response>;
 
 /** Invoca un handler y devuelve status y cuerpo ya parseado. */

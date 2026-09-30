@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Check, Loader2, Plus, X } from "lucide-react";
+import { Check, Loader2, Plus } from "lucide-react";
 import { cn, toDateKey } from "@/lib/utils";
 import {
   Button,
@@ -29,7 +29,6 @@ import {
   LABEL_COLORS,
   LABEL_COLOR_VAR,
   QUADRANTS,
-  QUADRANT_FLAGS,
   QUADRANT_GRID_ORDER,
   QUADRANT_META,
   RECURRENCE_FREQUENCIES,
@@ -583,37 +582,4 @@ export function TaskDialog({
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return <p className="text-[11px] leading-4 text-red">{message}</p>;
-}
-
-/** Reexport para el contenedor: cuadrante → booleanos. */
-export { QUADRANT_FLAGS };
-
-/** Chip de etiqueta con botón de borrado, usado en el panel de filtros. */
-export function LabelChip({
-  label,
-  onRemove,
-}: {
-  label: TaskLabelDTO;
-  onRemove?: () => void;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-px text-[11px] leading-4 text-text-2">
-      <span
-        aria-hidden
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: labelColorVar(label.color) }}
-      />
-      {label.name}
-      {onRemove ? (
-        <button
-          type="button"
-          aria-label={`Quitar ${label.name}`}
-          onClick={onRemove}
-          className="text-text-3 transition-colors hover:text-red"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      ) : null}
-    </span>
-  );
 }

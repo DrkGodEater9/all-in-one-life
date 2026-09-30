@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { badRequest, notFound } from "@/lib/http";
-import { formatTime, parseDateKey, parseTime } from "@/lib/utils";
+import { formatTime, parseDateKey } from "@/lib/utils";
 import {
   QUADRANTS,
   QUADRANT_FLAGS,
@@ -437,18 +437,18 @@ export async function applyStatusChange(
 }
 
 /**
- * Crea, actualiza o borra la `RecurrenceRule` de una tarea según el body.
- * Devuelve el `recurrenceId` que debe quedar guardado.
+ * Crea o actualiza la `RecurrenceRule` de una tarea según el body y devuelve
+ * el `recurrenceId` que debe quedar guardado (`null` si se quita la
+ * recurrencia). No borra la regla anterior: eso solo puede hacerse una vez
+ * actualizada la tarea, porque hasta entonces la FK sigue apuntando a ella
+ * (`deleteRuleIfOrphan`).
  */
 export async function applyRecurrence(
   tx: Prisma.TransactionClient,
   currentRecurrenceId: number | null,
   input: RecurrenceInput | null
 ): Promise<number | null> {
-  if (input === null) {
-    if (currentRecurrenceId) await deleteRuleIfOrphan(tx, currentRecurrenceId, null);
-    return null;
-  }
+  if (input === null) return null;
 
   const data = {
     frequency: input.frequency,

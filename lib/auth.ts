@@ -32,7 +32,7 @@ type RouteContext<P> = {
  *
  *   export const GET = withAuth(async ({ searchParams }) => ok(await ...));
  */
-export function withAuth<P extends Record<string, string | string[]> = Record<string, never>>(
+export function withAuth<P extends Record<string, string | string[]> = Record<string, string>>(
   handler: (ctx: RouteContext<P>) => Promise<Response>
 ) {
   return async (req: NextRequest, segment?: { params: P }): Promise<Response> => {
@@ -52,7 +52,7 @@ export function withAuth<P extends Record<string, string | string[]> = Record<st
 }
 
 /** Igual que withAuth pero sin exigir sesión (cron, login). */
-export function withRoute<P extends Record<string, string | string[]> = Record<string, never>>(
+export function withRoute<P extends Record<string, string | string[]> = Record<string, string>>(
   handler: (ctx: Omit<RouteContext<P>, "user">) => Promise<Response>
 ) {
   return async (req: NextRequest, segment?: { params: P }): Promise<Response> => {

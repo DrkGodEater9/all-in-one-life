@@ -258,8 +258,9 @@ export function TasksClient() {
       open: openTasks.length,
       urgentImportant: openTasks.filter((t) => t.quadrant === "do").length,
       overdue: openTasks.filter((t) => isOverdue(t.date)).length,
+      // `doneAt` es un ISO en UTC: hay que pasarlo a día local antes de comparar.
       doneToday: tasks.filter(
-        (t) => t.status === "done" && t.doneAt?.slice(0, 10) === today
+        (t) => t.status === "done" && t.doneAt && toDateKey(new Date(t.doneAt)) === today
       ).length,
     };
   }, [openTasks, tasks]);
