@@ -90,12 +90,10 @@ export function FinanceClient() {
               <Stat
                 label="Diario"
                 value={formatMoney(balance?.daily ?? 0)}
-                valueClassName="font-serif"
               />
               <Stat
                 label="Ahorros"
                 value={formatMoney(balance?.savings ?? 0)}
-                valueClassName="font-serif"
               />
             </div>
             <p className="text-sm text-text-2">

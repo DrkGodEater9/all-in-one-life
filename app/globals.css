@@ -125,10 +125,17 @@
 }
 
 @layer components {
-  /* Cifra destacada: serif grande. Regla 4 del sistema visual. */
+  /*
+   * Cifra destacada de los widgets (saldo, kcal, etc.). El spec original
+   * pedía Instrument Serif aquí; en dígitos reales ("$0", "0") se veía raro,
+   * así que se cambió a la monoespaciada -mismo criterio que ya se usaba
+   * para cifras en tablas- a pedido explícito.
+   */
   .stat-value {
-    font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
     font-size: 2.25rem;
+    font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.01em;
     color: var(--color-text);

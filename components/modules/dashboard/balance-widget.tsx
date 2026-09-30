@@ -47,12 +47,12 @@ export function BalanceWidget() {
           <Stat
             label="Diario"
             value={formatMoney(state.data.daily)}
-            valueClassName="font-serif text-3xl"
+            valueClassName="text-3xl"
           />
           <Stat
             label="Ahorros"
             value={formatMoney(state.data.savings)}
-            valueClassName="font-serif text-3xl"
+            valueClassName="text-3xl"
           />
         </div>
       )}
