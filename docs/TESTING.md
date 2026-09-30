@@ -46,7 +46,10 @@ describe("GET /api/finance/transactions", () => {
       { id: 1, amount: new Prisma.Decimal("1500.50"), type: "expense" },
     ]);
 
-    const { status, body } = await get(GET, "/api/finance/transactions?from=2026-01-01");
+    const { status, body } = await get<{ id: number; amount: number }[]>(
+      GET,
+      "/api/finance/transactions?from=2026-01-01"
+    );
 
     expect(status).toBe(200);
     expect(body[0].amount).toBe(1500.5);   // serializado a number, no a string
@@ -65,7 +68,7 @@ describe("GET /api/finance/transactions", () => {
 });
 ```
 
-Helpers de `test/helpers/route.ts`: `get`, `post`, `put`, `patch`, `del`, y `makeRequest`/`callRoute` para casos con headers. Todos devuelven `{ status, body, res }`. Los tres últimos parámetros opcionales son los `params` de una ruta dinámica: `get(GET, "/api/projects/7", { id: "7" })`.
+Helpers de `test/helpers/route.ts`: `get`, `post`, `put`, `patch`, `del`, y `makeRequest`/`callRoute` para casos con headers. Todos devuelven `{ status, body, res }` y aceptan un genérico opcional para tipar `body` (por defecto `any`): `get<Transaction[]>(GET, "/api/finance/transactions")`. Pásalo cuando te dé autocompletado o te ayude a pillar un typo; no es obligatorio. El último parámetro son los `params` de una ruta dinámica: `get(GET, "/api/projects/7", { id: "7" })`.
 
 El mock de Prisma crea modelos y métodos al vuelo: `prismaMock.<modelo>.<método>.mockResolvedValue(...)`. `$transaction` está implementado: con callback recibe el propio mock, con array resuelve el `Promise.all`.
 

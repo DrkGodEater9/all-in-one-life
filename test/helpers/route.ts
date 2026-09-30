@@ -31,8 +31,15 @@ type Handler = (
   segment?: { params: any }
 ) => Promise<Response>;
 
-/** Invoca un handler y devuelve status y cuerpo ya parseado. */
-export async function callRoute<T = unknown>(
+/**
+ * Invoca un handler y devuelve status y cuerpo ya parseado.
+ *
+ * `T` por defecto es `any`, no `unknown`: es un helper de test, la corrección
+ * la da la aserción en runtime (`expect`), no el tipo de retorno. Pásalo
+ * explícito cuando quieras autocompletado o detectar un typo en una
+ * propiedad: `get<Transaction[]>(GET, "/api/finance/transactions")`.
+ */
+export async function callRoute<T = any>(
   handler: Handler,
   req: NextRequest,
   params?: Record<string, string>
@@ -43,42 +50,55 @@ export async function callRoute<T = unknown>(
   return { status: res.status, body: body as T, res };
 }
 
-/** Atajo: GET a una ruta sin parámetros dinámicos. */
-export function get(handler: Handler, path: string, params?: Record<string, string>) {
-  return callRoute(handler, makeRequest(path), params);
+/**
+ * Atajos GET/POST/PUT/PATCH/DELETE. Todos aceptan un genérico explícito para
+ * tipar `body` en el resultado, p. ej. `get<Transaction[]>(GET, "/api/x")`.
+ * Sin él, `body` es `any` — es un helper de test, la corrección la da la
+ * aserción en runtime, no el tipo de retorno.
+ */
+export function get<T = any>(
+  handler: Handler,
+  path: string,
+  params?: Record<string, string>
+) {
+  return callRoute<T>(handler, makeRequest(path), params);
 }
 
 /** Atajo: POST con cuerpo JSON. */
-export function post(
+export function post<T = any>(
   handler: Handler,
   path: string,
   body: unknown,
   params?: Record<string, string>
 ) {
-  return callRoute(handler, makeRequest(path, { method: "POST", body }), params);
+  return callRoute<T>(handler, makeRequest(path, { method: "POST", body }), params);
 }
 
 /** Atajo: PUT con cuerpo JSON. */
-export function put(
+export function put<T = any>(
   handler: Handler,
   path: string,
   body: unknown,
   params?: Record<string, string>
 ) {
-  return callRoute(handler, makeRequest(path, { method: "PUT", body }), params);
+  return callRoute<T>(handler, makeRequest(path, { method: "PUT", body }), params);
 }
 
 /** Atajo: PATCH con cuerpo JSON. */
-export function patch(
+export function patch<T = any>(
   handler: Handler,
   path: string,
   body: unknown,
   params?: Record<string, string>
 ) {
-  return callRoute(handler, makeRequest(path, { method: "PATCH", body }), params);
+  return callRoute<T>(handler, makeRequest(path, { method: "PATCH", body }), params);
 }
 
 /** Atajo: DELETE. */
-export function del(handler: Handler, path: string, params?: Record<string, string>) {
-  return callRoute(handler, makeRequest(path, { method: "DELETE" }), params);
+export function del<T = any>(
+  handler: Handler,
+  path: string,
+  params?: Record<string, string>
+) {
+  return callRoute<T>(handler, makeRequest(path, { method: "DELETE" }), params);
 }
