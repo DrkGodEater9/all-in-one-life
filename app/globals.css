@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #0f0f11;
+    --color-surface: #17171a;
+    --color-surface-2: #1f1f24;
+    --color-border: #2a2a30;
+    --color-accent: #7c6af7;
+    --color-accent-soft: #7c6af720;
+    --color-text: #e8e8ed;
+    --color-text-2: #8e8e9a;
+    --color-text-3: #4a4a56;
+
+    /* Semáforo proyectos */
+    --color-green: #4ade80;
+    --color-yellow: #facc15;
+    --color-red: #f87171;
+
+    /* Estados */
+    --color-success: #4ade80;
+    --color-warning: #facc15;
+    --color-danger: #f87171;
+
+    /* Categorías de calendario */
+    --color-cat-medical: #f87171;
+    --color-cat-work: #7c6af7;
+    --color-cat-personal: #4ade80;
+    --color-cat-study: #facc15;
+  }
+
+  :root.light {
+    --color-bg: #fbfbfc;
+    --color-surface: #ffffff;
+    --color-surface-2: #f3f3f5;
+    --color-border: #e3e3e8;
+    --color-accent: #6553e0;
+    --color-accent-soft: #6553e01f;
+    --color-text: #17171a;
+    --color-text-2: #64646f;
+    --color-text-3: #a0a0ab;
+
+    --color-green: #16a34a;
+    --color-yellow: #ca8a04;
+    --color-red: #dc2626;
+
+    --color-success: #16a34a;
+    --color-warning: #ca8a04;
+    --color-danger: #dc2626;
+
+    --color-cat-medical: #dc2626;
+    --color-cat-work: #6553e0;
+    --color-cat-personal: #16a34a;
+    --color-cat-study: #ca8a04;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Motion solo funcional: 150ms de feedback de interacción. */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      opacity 150ms ease;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+  }
+
+  /* Scrollbar discreto */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-3);
+    background-clip: content-box;
+  }
+
+  /* Los inputs numéricos no muestran spinners */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Cifra destacada: serif grande. Regla 4 del sistema visual. */
+  .stat-value {
+    font-family: var(--font-instrument-serif), ui-serif, Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+  }
+  .stat-label {
+    font-family: var(--font-inter), sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-text-2);
+  }
+  /* Cifra en tabla o lista: monoespaciada. */
+  .num {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}

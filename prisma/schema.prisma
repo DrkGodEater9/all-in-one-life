@@ -1,0 +1,380 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────
+// SHARED
+// ─────────────────────────────────────────
+
+model RecurrenceRule {
+  id           Int       @id @default(autoincrement())
+  frequency    String    // 'daily' | 'weekly' | 'monthly'
+  intervalN    Int       @default(1)
+  dayOfMonth   Int?      // para monthly en día específico
+  endsOn       DateTime?
+  createdAt    DateTime  @default(now())
+
+  events       CalendarEvent[]
+  tasks        Task[]
+}
+
+// ─────────────────────────────────────────
+// FINANZAS
+// ─────────────────────────────────────────
+
+model FinanceSource {
+  id           Int       @id @default(autoincrement())
+  name         String    // 'daily' | 'savings'
+  balance      Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt    DateTime  @default(now())
+
+  transactions FinanceTransaction[]
+  debts        FinanceDebt[]
+}
+
+model FinanceTransaction {
+  id        Int       @id @default(autoincrement())
+  type      String    // 'expense' | 'income'
+  amount    Decimal   @db.Decimal(12, 2)
+  category  String
+  sourceId  Int
+  date      DateTime  @default(now()) @db.Date
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  source    FinanceSource @relation(fields: [sourceId], references: [id])
+}
+
+model FinanceDebt {
+  id          Int       @id @default(autoincrement())
+  direction   String    // 'i_owe' | 'they_owe_me'
+  person      String
+  reason      String
+  amount      Decimal   @db.Decimal(12, 2)
+  amountPaid  Decimal   @default(0) @db.Decimal(12, 2)
+  sourceId    Int
+  date        DateTime  @default(now()) @db.Date
+  isSettled   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  source      FinanceSource    @relation(fields: [sourceId], references: [id])
+  payments    FinanceDebtPayment[]
+}
+
+model FinanceDebtPayment {
+  id        Int      @id @default(autoincrement())
+  debtId    Int
+  amount    Decimal  @db.Decimal(12, 2)
+  date      DateTime @default(now()) @db.Date
+  createdAt DateTime @default(now())
+
+  debt      FinanceDebt @relation(fields: [debtId], references: [id])
+}
+
+model FinanceAsset {
+  id         Int      @id @default(autoincrement())
+  title      String
+  quantity   Decimal  @db.Decimal(12, 4)
+  unit       String?
+  priceEach  Decimal? @db.Decimal(12, 2)
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// NUTRICIÓN
+// ─────────────────────────────────────────
+
+model NutritionFoodCache {
+  id          Int      @id @default(autoincrement())
+  offId       String?  @unique
+  name        String
+  kcal100g    Decimal? @db.Decimal(8, 2)
+  protein100g Decimal? @db.Decimal(8, 2)
+  carbs100g   Decimal? @db.Decimal(8, 2)
+  fat100g     Decimal? @db.Decimal(8, 2)
+  cachedAt    DateTime @default(now())
+
+  mealItems   NutritionMealItem[]
+}
+
+model NutritionFavorite {
+  id           Int      @id @default(autoincrement())
+  name         String
+  kcal100g     Decimal  @db.Decimal(8, 2)
+  protein100g  Decimal  @db.Decimal(8, 2)
+  carbs100g    Decimal  @db.Decimal(8, 2)
+  fat100g      Decimal  @db.Decimal(8, 2)
+  defaultUnit  String   @default("g") // 'g' | 'ml' | 'unit'
+  kcalPerUnit  Decimal? @db.Decimal(8, 2)
+  createdAt    DateTime @default(now())
+
+  mealItems    NutritionMealItem[]
+}
+
+model NutritionMealLog {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @db.Date
+  mealType  String   // 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  createdAt DateTime @default(now())
+
+  items     NutritionMealItem[]
+}
+
+model NutritionMealItem {
+  id          Int      @id @default(autoincrement())
+  mealLogId   Int
+  foodName    String
+  foodCacheId Int?
+  favoriteId  Int?
+  amountG     Decimal  @db.Decimal(8, 2)
+  state       String   @default("unknown") // 'raw' | 'cooked' | 'unknown'
+  kcal        Decimal  @db.Decimal(8, 2)
+  proteinG    Decimal  @db.Decimal(8, 2)
+  carbsG      Decimal  @db.Decimal(8, 2)
+  fatG        Decimal  @db.Decimal(8, 2)
+  isEstimated Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  mealLog     NutritionMealLog   @relation(fields: [mealLogId], references: [id])
+  foodCache   NutritionFoodCache? @relation(fields: [foodCacheId], references: [id])
+  favorite    NutritionFavorite?  @relation(fields: [favoriteId], references: [id])
+}
+
+model NutritionGoal {
+  id        Int      @id @default(autoincrement())
+  kcal      Int
+  proteinG  Int
+  carbsG    Int
+  fatG      Int
+  updatedAt DateTime @default(now())
+}
+
+model NutritionWeightLog {
+  id        Int      @id @default(autoincrement())
+  weightKg  Decimal  @db.Decimal(5, 2)
+  date      DateTime @db.Date
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model NutritionWaterLog {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @db.Date
+  amountMl  Int      @default(250)
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// GYM
+// ─────────────────────────────────────────
+
+model GymRoutine {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+
+  exercises GymRoutineExercise[]
+  workouts  GymWorkout[]
+}
+
+model GymRoutineExercise {
+  id         Int      @id @default(autoincrement())
+  routineId  Int
+  name       String
+  type       String   // 'weight' | 'bodyweight' | 'cardio'
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  routine    GymRoutine @relation(fields: [routineId], references: [id])
+}
+
+model GymWorkout {
+  id         Int       @id @default(autoincrement())
+  routineId  Int
+  date       DateTime  @db.Date
+  notes      String?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  routine    GymRoutine      @relation(fields: [routineId], references: [id])
+  sets       GymWorkoutSet[]
+}
+
+model GymWorkoutSet {
+  id            Int      @id @default(autoincrement())
+  workoutId     Int
+  exerciseName  String
+  exerciseType  String
+  setNumber     Int
+  reps          Int?
+  weightKg      Decimal? @db.Decimal(6, 2)
+  durationSecs  Int?
+  distanceKm    Decimal? @db.Decimal(6, 3)
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  workout       GymWorkout @relation(fields: [workoutId], references: [id])
+}
+
+model GymMeasurement {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @db.Date
+  chestCm   Decimal? @db.Decimal(5, 2)
+  waistCm   Decimal? @db.Decimal(5, 2)
+  hipsCm    Decimal? @db.Decimal(5, 2)
+  armsCm    Decimal? @db.Decimal(5, 2)
+  thighsCm  Decimal? @db.Decimal(5, 2)
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// CALENDARIO
+// ─────────────────────────────────────────
+
+model CalendarEvent {
+  id             Int       @id @default(autoincrement())
+  title          String
+  date           DateTime  @db.Date
+  time           DateTime  @db.Time
+  category       String    // 'medical' | 'work' | 'personal' | 'study'
+  location       String?
+  meetingLink    String?
+  notes          String?
+  recurrenceId   Int?
+  source         String    @default("manual") // 'manual' | 'task'
+  sourceTaskId   Int?
+  createdAt      DateTime  @default(now())
+
+  recurrence     RecurrenceRule? @relation(fields: [recurrenceId], references: [id])
+  reminders      CalendarReminder[]
+}
+
+model CalendarReminder {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  remindType  String   // 'same_day' | 'day_before' | 'custom'
+  remindTime  DateTime @db.Time
+  daysBefore  Int      @default(0)
+  isSent      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  event       CalendarEvent @relation(fields: [eventId], references: [id])
+}
+
+// ─────────────────────────────────────────
+// TAREAS
+// ─────────────────────────────────────────
+
+model TaskLabel {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+
+  tasks     TaskLabelAssignment[]
+}
+
+model Task {
+  id              Int       @id @default(autoincrement())
+  title           String
+  description     String?
+  urgent          Boolean   @default(false)
+  important       Boolean   @default(false)
+  status          String    @default("pending") // 'pending' | 'in_progress' | 'done'
+  date            DateTime? @db.Date
+  time            DateTime? @db.Time
+  recurrenceId    Int?
+  calendarEventId Int?
+  doneAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  recurrence      RecurrenceRule? @relation(fields: [recurrenceId], references: [id])
+  labels          TaskLabelAssignment[]
+}
+
+model TaskLabelAssignment {
+  taskId   Int
+  labelId  Int
+
+  task     Task      @relation(fields: [taskId], references: [id])
+  label    TaskLabel @relation(fields: [labelId], references: [id])
+
+  @@id([taskId, labelId])
+}
+
+// ─────────────────────────────────────────
+// PROYECTOS
+// ─────────────────────────────────────────
+
+model ProjectCategory {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+
+  projects  Project[]
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      String    @default("idea")
+  // 'idea' | 'en_progreso' | 'pausado' | 'descartado' | 'completado'
+  viability   String?
+  // null en fase 1 — 'muy_viable' | 'viable' | 'poco_viable' en fase 2
+  categoryId  Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category    ProjectCategory?     @relation(fields: [categoryId], references: [id])
+  tags        ProjectTagAssignment[]
+  notes       ProjectNote[]
+  links       ProjectLink[]
+}
+
+model ProjectTag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  projects  ProjectTagAssignment[]
+}
+
+model ProjectTagAssignment {
+  projectId Int
+  tagId     Int
+
+  project   Project    @relation(fields: [projectId], references: [id])
+  tag       ProjectTag @relation(fields: [tagId], references: [id])
+
+  @@id([projectId, tagId])
+}
+
+model ProjectNote {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  content   String
+  createdAt DateTime @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id])
+}
+
+model ProjectLink {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  title     String?
+  url       String
+  createdAt DateTime @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id])
+}
