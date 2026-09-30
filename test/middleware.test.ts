@@ -56,4 +56,24 @@ describe("middleware — rutas públicas sin sesión", () => {
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).not.toContain("/login");
   });
+
+  it("adjunta una CSP con nonce distinto en cada request", async () => {
+    const res1 = await run("/finance", { id: "u1" });
+    const res2 = await run("/finance", { id: "u1" });
+
+    const csp1 = res1.headers.get("Content-Security-Policy");
+    const csp2 = res2.headers.get("Content-Security-Policy");
+
+    expect(csp1).toContain("default-src 'self'");
+    expect(csp1).toContain("frame-ancestors 'none'");
+    expect(csp1).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
+    expect(csp1).not.toBe(csp2); // nonce nuevo por request
+  });
+
+  it("adjunta la CSP incluso en el 401 y en los redirects", async () => {
+    const unauth = await run("/api/finance/balance", null);
+    const redirect = await run("/finance", null);
+    expect(unauth.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
+    expect(redirect.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
+  });
 });
