@@ -1,5 +1,18 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Los tokens viven en globals.css como hex (`--color-accent: #7C6AF7`), no como
+ * canales sueltos. Tailwind no sabe aplicar el modificador `/NN` a un `var()`
+ * plano: descarta la clase en silencio y no emite CSS. Envolverlo en una función
+ * con `opacityValue` nos deja seguir escribiendo `bg-accent/85` y que funcione.
+ */
+const token =
+  (name: string) =>
+  ({ opacityValue }: { opacityValue?: string }) =>
+    opacityValue === undefined
+      ? `var(--color-${name})`
+      : `color-mix(in srgb, var(--color-${name}) ${Number(opacityValue) * 100}%, transparent)`;
+
 const config: Config = {
   darkMode: "class",
   content: [
@@ -10,30 +23,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "var(--color-bg)",
-        surface: "var(--color-surface)",
-        "surface-2": "var(--color-surface-2)",
-        border: "var(--color-border)",
+        bg: token("bg"),
+        surface: token("surface"),
+        "surface-2": token("surface-2"),
+        border: token("border"),
         accent: {
-          DEFAULT: "var(--color-accent)",
+          DEFAULT: token("accent"),
           soft: "var(--color-accent-soft)",
         },
         text: {
-          DEFAULT: "var(--color-text)",
-          2: "var(--color-text-2)",
-          3: "var(--color-text-3)",
+          DEFAULT: token("text"),
+          2: token("text-2"),
+          3: token("text-3"),
         },
-        green: "var(--color-green)",
-        yellow: "var(--color-yellow)",
-        red: "var(--color-red)",
-        success: "var(--color-success)",
-        warning: "var(--color-warning)",
-        danger: "var(--color-danger)",
+        green: token("green"),
+        yellow: token("yellow"),
+        red: token("red"),
+        success: token("success"),
+        warning: token("warning"),
+        danger: token("danger"),
         cat: {
-          medical: "var(--color-cat-medical)",
-          work: "var(--color-cat-work)",
-          personal: "var(--color-cat-personal)",
-          study: "var(--color-cat-study)",
+          medical: token("cat-medical"),
+          work: token("cat-work"),
+          personal: token("cat-personal"),
+          study: token("cat-study"),
         },
       },
       fontFamily: {

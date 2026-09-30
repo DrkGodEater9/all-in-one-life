@@ -110,7 +110,9 @@ De `@/components/ui` (también importables por archivo):
 
 `Button` `Input` `Textarea` `Label` `Card`+`CardHeader`/`CardTitle`/`CardDescription`/`CardContent`/`CardFooter` `Dialog`+`DialogTrigger`/`DialogContent`/`DialogHeader`/`DialogBody`/`DialogFooter`/`DialogTitle`/`DialogDescription` `Tabs`+`TabsList`/`TabsTrigger`/`TabsContent` `Select`+`SelectTrigger`/`SelectValue`/`SelectContent`/`SelectItem` `Badge` `Progress` `Switch` `Checkbox` `Separator` `Skeleton` `Popover` `DropdownMenu` `EmptyState` `Stat` `SectionHeader` `useToast`/`toast`
 
-De `@/components/layout`: `PageHeader` (título + descripción + acción).
+De `@/components/layout`: `PageHeader` (título + descripción + acción). **No renderices `Header`, `Sidebar`, `BottomNav` ni `AppShell`** — el route group `(app)` ya los monta; el `Header` es solo mobile.
+
+Los modificadores de opacidad (`bg-accent/85`, `border-danger/30`, `bg-bg/80`) **sí funcionan**: `tailwind.config.ts` define cada token como función con `opacityValue` que resuelve a `color-mix`. No hace falta escribir `color-mix` a mano en las clases.
 
 Estados vacíos: siempre `EmptyState`, nunca una pantalla en blanco. Estados de carga: `Skeleton`.
 

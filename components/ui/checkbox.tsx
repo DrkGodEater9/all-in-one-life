@@ -13,7 +13,7 @@ const Checkbox = React.forwardRef<
     ref={ref}
     className={cn(
       "peer inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-border bg-surface-2",
-      "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+      "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-accent)_60%,transparent)]",
       "disabled:cursor-not-allowed disabled:opacity-40",
       "data-[state=checked]:border-accent data-[state=checked]:bg-accent",
       "data-[state=indeterminate]:border-accent data-[state=indeterminate]:bg-accent",

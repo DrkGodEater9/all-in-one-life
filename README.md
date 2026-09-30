@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal OS
 
-## Getting Started
+Web app personal para gestionar finanzas, nutrición, gym, calendario, tareas y proyectos desde un solo lugar. Monousuario, sin registro público.
 
-First, run the development server:
+Spec del producto: [`SPEC_FASE1.md`](SPEC_FASE1.md) · Convenciones de código: [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+Next.js 14 (App Router) · TypeScript · Prisma · Supabase (Postgres + Auth) · Tailwind + shadcn/ui · Vercel Cron.
+
+## Puesta en marcha
+
+1. **Variables de entorno** — copia la plantilla y llénala:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   | Variable | De dónde sale |
+   |---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API |
+   | `DATABASE_URL` | Supabase → Database → Connection string (pooler, puerto 6543, con `?pgbouncer=true`) |
+   | `DIRECT_URL` | Misma pantalla, conexión directa (puerto 5432). La usan las migraciones. |
+   | `CRON_SECRET` | Cualquier string aleatorio. Protege `/api/cron/reminders`. |
+
+   Prisma también lee `.env` (no `.env.local`) para los comandos de CLI: pon ahí `DATABASE_URL` y `DIRECT_URL`.
+
+2. **Base de datos**
+
+   ```bash
+   npm run db:push     # crea las tablas a partir de prisma/schema.prisma
+   npm run db:seed     # fuentes daily/savings, metas por defecto, categorías
+   ```
+
+3. **Usuario** — no hay registro público. Créalo a mano en Supabase → Authentication → Users → *Add user* (con email y contraseña, confirmado).
+
+4. **Arrancar**
+
+   ```bash
+   npm run dev
+   ```
+
+## Scripts
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` / `npm start` | Build de producción y arranque |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run db:push` | Sincroniza el schema con la base sin migración |
+| `npm run db:migrate` | Crea y aplica una migración |
+| `npm run db:seed` | Datos base idempotentes |
+| `npm run db:studio` | Prisma Studio |
+
+## Deploy en Vercel
+
+Un solo proyecto. Carga las mismas variables de entorno en el dashboard de Vercel. El cron de recordatorios está declarado en [`vercel.json`](vercel.json) y corre cada 10 minutos contra `/api/cron/reminders`; Vercel manda el header `Authorization: Bearer $CRON_SECRET`.
+
+## Estructura
+
+```
+app/
+  (app)/         páginas con shell (sidebar + bottom nav): /, /finance, /nutrition, …
+  (auth)/login/  login sin shell
+  api/           API routes por módulo
+components/
+  ui/            primitivos shadcn re-tematizados a la paleta del spec
+  layout/        Sidebar, BottomNav, Header, AppShell, PageHeader
+  modules/       componentes de cada módulo
+lib/             db, auth, http, api (cliente), utils
+prisma/          schema.prisma y seed.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Fase 2
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Un agente de Telegram encima de esta misma API. No se construye aquí; el punto de extensión está marcado en `/api/cron/reminders`.
