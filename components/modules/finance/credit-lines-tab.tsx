@@ -79,17 +79,15 @@ export function CreditLinesTab({ reloadKey, onChanged }: CreditLinesTabProps) {
                 ) : null}
                 {line.limit !== null ? (
                   <>
-                    {line.owed === null ? (
-                      <Stat label="Disponible" value={formatMoney(line.available ?? 0)} />
-                    ) : null}
+                    <Stat label="Disponible" value={formatMoney(line.available ?? 0)} />
                     <Progress value={progress} />
                     <p className="font-mono text-[11px] tabular-nums text-text-3">
                       {formatMoney(line.used)} usado / {formatMoney(line.limit)} cupo
                     </p>
                   </>
-                ) : line.owed === null ? (
+                ) : (
                   <Stat label="Usado" value={formatMoney(line.used)} />
-                ) : null}
+                )}
               </button>
 
               <a

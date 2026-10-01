@@ -203,10 +203,10 @@ export const creditMovementSchema = z.object({
 });
 
 /**
- * Sin `totalDebt` (líneas anteriores): usado = Σ retiros − Σ pagos, y pagar
- * libera cupo.
- * Con `totalDebt`: debe = deuda inicial + Σ retiros − Σ pagos (pagar reduce la
- * deuda), y cupo usado = deuda inicial + Σ retiros (pagar NO libera cupo).
+ * Cupo: usado = Σ retiros − Σ pagos; disponible = cupo − usado. Solo depende
+ * de los movimientos.
+ * Deuda (`totalDebt`) es un seguimiento APARTE, independiente del cupo:
+ * debe = deuda registrada + Σ retiros − Σ pagos (null si no se lleva).
  * Nunca negativo hacia afuera.
  */
 export function creditLineBalance(
@@ -221,14 +221,13 @@ export function creditLineBalance(
     else paid += num(m.amount);
   }
   const limit = creditLimit === null || creditLimit === undefined ? null : num(creditLimit);
+  const used = Math.max(0, money(withdrawn - paid));
   const tracked = totalDebt !== null && totalDebt !== undefined;
-  const base = tracked ? num(totalDebt) : 0;
-  const used = Math.max(0, money(tracked ? base + withdrawn : withdrawn - paid));
   return {
     used,
     limit,
     available: limit === null ? null : money(Math.max(0, limit - used)),
-    owed: tracked ? Math.max(0, money(base + withdrawn - paid)) : null,
+    owed: tracked ? Math.max(0, money(num(totalDebt) + withdrawn - paid)) : null,
   };
 }
 

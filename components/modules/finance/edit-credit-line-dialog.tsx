@@ -136,8 +136,7 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
                 <p className="text-xs text-danger">{errors.owed.message}</p>
               ) : (
                 <p className="text-xs text-text-3">
-                  Los pagos lo van bajando. Vacío = sin seguimiento de deuda. Los movimientos no
-                  se modifican.
+                  Solo seguimiento: los pagos lo van bajando y no afecta el cupo. Vacío = sin seguimiento.
                 </p>
               )}
             </div>
