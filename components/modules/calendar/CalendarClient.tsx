@@ -26,7 +26,7 @@ import { DayView } from "./DayView";
 import { EventFormDialog } from "./EventFormDialog";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
-import { toEditable, type CalendarEventDTO, type EditableEvent } from "./types";
+import { toEditable, type CalendarEventDTO, type EditableEvent, type TaskDayDTO } from "./types";
 
 type View = "month" | "week" | "day";
 
@@ -48,6 +48,7 @@ export function CalendarClient() {
   const [view, setView] = React.useState<View>("month");
   const [cursor, setCursor] = React.useState<Date>(() => new Date());
   const [events, setEvents] = React.useState<CalendarEventDTO[]>([]);
+  const [taskDays, setTaskDays] = React.useState<TaskDayDTO[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -65,6 +66,15 @@ export function CalendarClient() {
     if (!needsEvents) return;
     let cancelled = false;
     setLoading(true);
+    // Los puntos de tareas son decorativos: si fallan, el calendario sigue.
+    api
+      .get<TaskDayDTO[]>(`/calendar/task-days${qs({ from: fromKey, to: toKey })}`)
+      .then((data) => {
+        if (!cancelled) setTaskDays(data);
+      })
+      .catch(() => {
+        if (!cancelled) setTaskDays([]);
+      });
     api
       .get<CalendarEventDTO[]>(`/calendar/events${qs({ from: fromKey, to: toKey })}`)
       .then((data) => {
@@ -158,7 +168,7 @@ export function CalendarClient() {
           <Skeleton className="h-64 w-full" />
         </div>
       ) : view === "month" ? (
-        <MonthView cursor={cursor} events={events} onSelectDay={openDay} />
+        <MonthView cursor={cursor} events={events} tasks={taskDays} onSelectDay={openDay} />
       ) : view === "week" ? (
         <WeekView
           cursor={cursor}

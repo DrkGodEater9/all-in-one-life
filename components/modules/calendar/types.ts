@@ -141,3 +141,12 @@ export function toEditable(
     })),
   };
 }
+
+/** Tarea con fecha reducida a lo necesario para pintar su punto en el mes. */
+export interface TaskDayDTO {
+  id: number;
+  date: string;
+  urgent: boolean;
+  important: boolean;
+  labelColor: string | null;
+}
