@@ -127,7 +127,7 @@ export function AddCreditLineDialog({ open, onOpenChange, onCreated }: AddCredit
                 <p className="text-xs text-danger">{errors.totalDebt.message}</p>
               ) : (
                 <p className="text-xs text-text-3">
-                  Lo que pagarás en total. "Debes" será este total menos tus pagos; no afecta el cupo.
+                  Lo que pagarás en total. &quot;Debes&quot; será este total menos tus pagos; no afecta el cupo.
                 </p>
               )}
             </div>

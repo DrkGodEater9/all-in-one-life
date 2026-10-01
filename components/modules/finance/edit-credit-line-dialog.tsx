@@ -129,7 +129,7 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
                 <p className="text-xs text-danger">{errors.totalDebt.message}</p>
               ) : (
                 <p className="text-xs text-text-3">
-                  Lo que pagarás en total. "Debes" es este total menos los pagos hechos; no afecta el cupo. Vacío = sin seguimiento.
+                  Lo que pagarás en total. &quot;Debes&quot; es este total menos los pagos hechos; no afecta el cupo. Vacío = sin seguimiento.
                 </p>
               )}
             </div>
