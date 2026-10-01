@@ -25,9 +25,9 @@ const schema = z.object({
     (v) => v.trim() === "" || Number(v) > 0,
     "El cupo debe ser mayor que cero"
   ),
-  owed: z.string().refine(
+  totalDebt: z.string().refine(
     (v) => v.trim() === "" || Number(v) >= 0,
-    "Lo que se debe no puede ser negativo"
+    "El total a pagar no puede ser negativo"
   ),
 });
 
@@ -43,7 +43,7 @@ function valuesOf(line: CreditLineDetail | null): Values {
   return {
     name: line?.name ?? "",
     creditLimit: line?.creditLimit != null ? String(line.creditLimit) : "",
-    owed: line?.owed != null ? String(line.owed) : "",
+    totalDebt: line?.totalDebt != null ? String(line.totalDebt) : "",
   };
 }
 
@@ -61,15 +61,8 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
 
   async function onSubmit(values: Values) {
     if (!line) return;
-    // El usuario escribe lo que debe HOY; la deuda base se deriva restando el
-    // efecto de los movimientos ya registrados, así el historial no se toca.
-    const net = line.movements.reduce(
-      (acc, m) => acc + (m.type === "withdrawal" ? m.amount : -m.amount),
-      0
-    );
-    const owedText = values.owed.trim();
-    const totalDebt =
-      owedText === "" ? null : Math.max(0, Math.round((Number(owedText) - net) * 100) / 100);
+    const debtText = values.totalDebt.trim();
+    const totalDebt = debtText === "" ? null : Number(debtText);
 
     try {
       await api.put(`/finance/credit-lines/${line.id}`, {
@@ -121,22 +114,22 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="edit-credit-owed">Lo que se debe hoy (opcional)</Label>
+              <Label htmlFor="edit-credit-debt">Total a pagar (opcional)</Label>
               <Input
-                id="edit-credit-owed"
+                id="edit-credit-debt"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
                 className="font-mono tabular-nums"
-                {...form.register("owed")}
+                {...form.register("totalDebt")}
               />
-              {errors.owed ? (
-                <p className="text-xs text-danger">{errors.owed.message}</p>
+              {errors.totalDebt ? (
+                <p className="text-xs text-danger">{errors.totalDebt.message}</p>
               ) : (
                 <p className="text-xs text-text-3">
-                  Solo seguimiento: los pagos lo van bajando y no afecta el cupo. Vacío = sin seguimiento.
+                  Lo que pagarás en total. "Debes" es este total menos los pagos hechos; no afecta el cupo. Vacío = sin seguimiento.
                 </p>
               )}
             </div>

@@ -112,7 +112,7 @@ export function AddCreditLineDialog({ open, onOpenChange, onCreated }: AddCredit
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="credit-debt">Lo que se debe (opcional)</Label>
+              <Label htmlFor="credit-debt">Total a pagar (opcional)</Label>
               <Input
                 id="credit-debt"
                 type="number"
@@ -127,7 +127,7 @@ export function AddCreditLineDialog({ open, onOpenChange, onCreated }: AddCredit
                 <p className="text-xs text-danger">{errors.totalDebt.message}</p>
               ) : (
                 <p className="text-xs text-text-3">
-                  Solo para llevar el seguimiento de cuánto debes; no afecta el cupo.
+                  Lo que pagarás en total. "Debes" será este total menos tus pagos; no afecta el cupo.
                 </p>
               )}
             </div>

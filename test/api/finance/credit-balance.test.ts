@@ -13,7 +13,7 @@ describe("creditLineBalance", () => {
 
   it("con totalDebt: la deuda y el cupo son independientes", () => {
     const r = creditLineBalance([W(100), P(250)], 1000, 500);
-    expect(r.owed).toBe(350); // 500 + 100 - 250
+    expect(r.owed).toBe(250); // 500 - 250 (los retiros no cuentan)
     expect(r.used).toBe(0); // la deuda registrada no consume cupo
     expect(r.available).toBe(1000);
     // Mismo cupo que sin deuda registrada
@@ -25,7 +25,7 @@ describe("creditLineBalance", () => {
   });
 
   it("totalDebt 0 también activa el seguimiento", () => {
-    expect(creditLineBalance([W(50)], null, 0)).toMatchObject({ owed: 50, available: null });
+    expect(creditLineBalance([W(50)], null, 0)).toMatchObject({ owed: 0, available: null });
   });
 });
 
