@@ -98,7 +98,7 @@ export function CreditLinesTab({ reloadKey, onChanged }: CreditLinesTabProps) {
                 className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
               >
                 <Download className="h-3.5 w-3.5" />
-                Exportar CSV
+                Exportar Excel
               </a>
             </Card>
           );

@@ -217,11 +217,11 @@ export function WalletDetailDialog({ source, onOpenChange, onChanged }: WalletDe
               <div className="flex items-center justify-between gap-3">
                 <DialogTitle>{source.name === "daily" ? "Diario" : "Ahorros"}</DialogTitle>
                 <a
-                  href={`/api/finance/export/csv${query}`}
+                  href={`/api/finance/export/xlsx${query}`}
                   className="inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Exportar CSV
+                  Exportar Excel
                 </a>
               </div>
             </DialogHeader>

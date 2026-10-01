@@ -183,25 +183,6 @@ export function balanceDelta(type: string, amount: number): number {
   return type === "income" ? money(amount) : -money(amount);
 }
 
-/** Escapa un campo para CSV (RFC 4180). Compartido por los export/csv. */
-export function csvCell(value: unknown): string {
-  const raw = value === null || value === undefined ? "" : String(value);
-  return /[",\r\n]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw;
-}
-
-/** Arma la respuesta de descarga de un CSV, con BOM para que Excel lea bien los acentos. */
-export function csvResponse(headers: string[], rows: string[][], filename: string): Response {
-  const csv = `﻿${[headers.join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\r\n")}\r\n`;
-  return new Response(csv, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "no-store",
-    },
-  });
-}
-
 // ─────────────────────────────────────────
 // Líneas de crédito
 // ─────────────────────────────────────────
