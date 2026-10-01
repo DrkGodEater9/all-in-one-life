@@ -118,6 +118,30 @@ model FinanceCreditMovement {
 }
 
 // ─────────────────────────────────────────
+// RACHAS
+// ─────────────────────────────────────────
+
+model Streak {
+  id        Int      @id @default(autoincrement())
+  name      String
+  color     String   @default("#8b5cf6")
+  mode      String   // 'daily' | 'alternate' (día sí, día no)
+  createdAt DateTime @default(now())
+
+  checkins  StreakCheckin[]
+}
+
+model StreakCheckin {
+  id       Int      @id @default(autoincrement())
+  streakId Int
+  date     DateTime @db.Date
+
+  streak   Streak   @relation(fields: [streakId], references: [id], onDelete: Cascade)
+
+  @@unique([streakId, date])
+}
+
+// ─────────────────────────────────────────
 // NUTRICIÓN
 // ─────────────────────────────────────────
 

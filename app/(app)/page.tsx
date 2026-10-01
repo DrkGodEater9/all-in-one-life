@@ -4,13 +4,13 @@ import { BalanceWidget } from "@/components/modules/dashboard/balance-widget";
 import { CaloriesWidget } from "@/components/modules/dashboard/calories-widget";
 import { UpcomingEventsWidget } from "@/components/modules/dashboard/upcoming-events-widget";
 import { UrgentTasksWidget } from "@/components/modules/dashboard/urgent-tasks-widget";
-import { LastWorkoutWidget } from "@/components/modules/dashboard/last-workout-widget";
+import { StreaksSection } from "@/components/modules/dashboard/streaks-section";
 import { ProjectsWidget } from "@/components/modules/dashboard/projects-widget";
 import { ServiceWorkerRegister } from "@/components/modules/dashboard/service-worker-register";
 
 export const metadata: Metadata = {
   title: "Personal OS",
-  description: "Resumen del día: saldo, calorías, agenda, tareas, entreno y proyectos.",
+  description: "Resumen del día: saldo, calorías, agenda, tareas, proyectos y rachas.",
   icons: {
     apple: "/icons/apple-touch-icon.svg",
   },
@@ -32,9 +32,9 @@ export default function HomePage() {
         <CaloriesWidget />
         <UpcomingEventsWidget />
         <UrgentTasksWidget />
-        <LastWorkoutWidget />
         <ProjectsWidget />
       </div>
+      <StreaksSection />
     </>
   );
 }
