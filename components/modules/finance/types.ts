@@ -97,8 +97,11 @@ export interface CreditLine {
   id: number;
   name: string;
   creditLimit: number | null;
+  totalDebt: number | null;
   createdAt: string;
   used: number;
+  /** Lo que se debe hoy; null si la línea no lleva seguimiento de deuda. */
+  owed: number | null;
   limit: number | null;
   available: number | null;
 }

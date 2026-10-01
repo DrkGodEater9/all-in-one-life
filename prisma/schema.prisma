@@ -97,6 +97,9 @@ model FinanceCreditLine {
   id          Int      @id @default(autoincrement())
   name        String
   creditLimit Decimal? @db.Decimal(12, 2)
+  // Deuda inicial opcional. Null = línea sin seguimiento de deuda (comportamiento
+  // anterior: los pagos liberan cupo).
+  totalDebt   Decimal? @db.Decimal(12, 2)
   createdAt   DateTime @default(now())
 
   movements   FinanceCreditMovement[]

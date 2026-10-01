@@ -16,7 +16,11 @@ export const GET = withAuth<{ id: string }>(async ({ params }) => {
   if (!line) throw notFound("La línea de crédito indicada no existe");
 
   const { movements, ...rest } = line;
-  return ok({ ...rest, ...creditLineBalance(movements, line.creditLimit), movements });
+  return ok({
+    ...rest,
+    ...creditLineBalance(movements, line.creditLimit, line.totalDebt),
+    movements,
+  });
 });
 
 /** PUT /api/finance/credit-lines/[id] — { name, creditLimit? } */
@@ -32,7 +36,7 @@ export const PUT = withAuth<{ id: string }>(async ({ req, params }) => {
   // nombre (`PUT {name: "X"}`) borraba el cupo que ya tenía configurado.
   const line = await prisma.financeCreditLine.update({
     where: { id },
-    data: { name: data.name, creditLimit: data.creditLimit },
+    data: { name: data.name, creditLimit: data.creditLimit, totalDebt: data.totalDebt },
     include: { movements: { select: { type: true, amount: true } } },
   });
 
@@ -41,7 +45,7 @@ export const PUT = withAuth<{ id: string }>(async ({ req, params }) => {
   // confiara en la respuesta del PUT (en vez de recargar desde el GET)
   // habría recibido `undefined` en esos tres campos.
   const { movements, ...rest } = line;
-  return ok({ ...rest, ...creditLineBalance(movements, line.creditLimit) });
+  return ok({ ...rest, ...creditLineBalance(movements, line.creditLimit, line.totalDebt) });
 });
 
 /** DELETE /api/finance/credit-lines/[id] — borra la línea y sus movimientos. */

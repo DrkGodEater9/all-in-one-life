@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { formatMoney, toDateKey } from "@/lib/utils";
 import {
@@ -22,6 +22,7 @@ import {
   toast,
 } from "@/components/ui";
 import { Segmented } from "./segmented";
+import { EditCreditLineDialog } from "./edit-credit-line-dialog";
 import { creditLineProgress, formatDateLabel } from "./finance-utils";
 import type { CreditLineDetail, CreditMovement } from "./types";
 
@@ -50,6 +51,7 @@ export function CreditLineDetailDialog({
 }: CreditLineDetailDialogProps) {
   const [line, setLine] = React.useState<CreditLineDetail | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [editing, setEditing] = React.useState(false);
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -134,6 +136,14 @@ export function CreditLineDetailDialog({
             <DialogHeader>
               <div className="flex items-center justify-between gap-3">
                 <DialogTitle>{line.name}</DialogTitle>
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="ml-auto inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Editar
+                </button>
                 <a
                   href={`/api/finance/credit-lines/${line.id}/export`}
                   className="inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
@@ -146,6 +156,11 @@ export function CreditLineDetailDialog({
 
             <DialogBody className="space-y-5">
               <div className="space-y-2">
+                {line.owed !== null ? (
+                  <p className="font-mono text-sm tabular-nums text-text">
+                    Debes {formatMoney(line.owed)}
+                  </p>
+                ) : null}
                 {line.limit !== null ? (
                   <>
                     <Progress value={progress} />
@@ -266,6 +281,15 @@ export function CreditLineDetailDialog({
           </>
         ) : null}
       </DialogContent>
+
+      <EditCreditLineDialog
+        line={editing ? line : null}
+        onOpenChange={setEditing}
+        onSaved={() => {
+          load();
+          onChanged();
+        }}
+      />
     </Dialog>
   );
 }

@@ -31,7 +31,7 @@ export const POST = withAuth<{ id: string }>(async ({ req, params }) => {
     // cupo $500.000", un estado inconsistente sin que nada lo hubiera
     // marcado como error.
     if (data.type === "withdrawal" && line.creditLimit !== null) {
-      const { available } = creditLineBalance(line.movements, line.creditLimit);
+      const { available } = creditLineBalance(line.movements, line.creditLimit, line.totalDebt);
       if (data.amount > (available ?? 0)) {
         throw badRequest(
           `El retiro excede el disponible (${available ?? 0})`,

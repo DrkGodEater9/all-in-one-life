@@ -17,7 +17,7 @@ export const GET = withAuth(async () => {
   return ok(
     lines.map(({ movements, ...line }) => ({
       ...line,
-      ...creditLineBalance(movements, line.creditLimit),
+      ...creditLineBalance(movements, line.creditLimit, line.totalDebt),
     }))
   );
 });
@@ -27,8 +27,12 @@ export const POST = withAuth(async ({ req }) => {
   const data = creditLineSchema.parse(await req.json());
 
   const line = await prisma.financeCreditLine.create({
-    data: { name: data.name, creditLimit: data.creditLimit ?? null },
+    data: {
+      name: data.name,
+      creditLimit: data.creditLimit ?? null,
+      totalDebt: data.totalDebt ?? null,
+    },
   });
 
-  return created({ ...line, used: 0, limit: data.creditLimit ?? null, available: data.creditLimit ?? null });
+  return created({ ...line, ...creditLineBalance([], line.creditLimit, line.totalDebt) });
 });

@@ -211,6 +211,7 @@ export const creditMovementTypeSchema = z.enum(["withdrawal", "payment"]);
 export const creditLineSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(80),
   creditLimit: z.number().finite().positive().max(9_999_999_999).nullable().optional(),
+  totalDebt: z.number().finite().min(0).max(9_999_999_999).nullable().optional(),
 });
 
 export const creditMovementSchema = z.object({
@@ -221,24 +222,32 @@ export const creditMovementSchema = z.object({
 });
 
 /**
- * Usado = Σ retiros − Σ pagos. Disponible = cupo − usado (null si no hay cupo).
- * Nunca negativo hacia afuera: si se paga de más, `used` puede quedar
- * negativo internamente (a favor), pero se reporta en 0 para no confundir.
+ * Sin `totalDebt` (líneas anteriores): usado = Σ retiros − Σ pagos, y pagar
+ * libera cupo.
+ * Con `totalDebt`: debe = deuda inicial + Σ retiros − Σ pagos (pagar reduce la
+ * deuda), y cupo usado = deuda inicial + Σ retiros (pagar NO libera cupo).
+ * Nunca negativo hacia afuera.
  */
 export function creditLineBalance(
   movements: { type: string; amount: Prisma.Decimal | number }[],
-  creditLimit: Prisma.Decimal | number | null
+  creditLimit: Prisma.Decimal | number | null,
+  totalDebt: Prisma.Decimal | number | null = null
 ) {
-  const used = movements.reduce(
-    (acc, m) => acc + (m.type === "withdrawal" ? num(m.amount) : -num(m.amount)),
-    0
-  );
-  const usedClamped = Math.max(0, money(used));
+  let withdrawn = 0;
+  let paid = 0;
+  for (const m of movements) {
+    if (m.type === "withdrawal") withdrawn += num(m.amount);
+    else paid += num(m.amount);
+  }
   const limit = creditLimit === null || creditLimit === undefined ? null : num(creditLimit);
+  const tracked = totalDebt !== null && totalDebt !== undefined;
+  const base = tracked ? num(totalDebt) : 0;
+  const used = Math.max(0, money(tracked ? base + withdrawn : withdrawn - paid));
   return {
-    used: usedClamped,
+    used,
     limit,
-    available: limit === null ? null : money(Math.max(0, limit - usedClamped)),
+    available: limit === null ? null : money(Math.max(0, limit - used)),
+    owed: tracked ? Math.max(0, money(base + withdrawn - paid)) : null,
   };
 }
 
