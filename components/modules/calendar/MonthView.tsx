@@ -40,6 +40,9 @@ function taskColor(task: TaskDayDTO): string {
   return meta.key === "eliminate" ? "var(--color-text-3)" : meta.cssVar;
 }
 
+/** Color del punto de una tarea (compartido con la vista de semana). */
+export { taskColor };
+
 export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthViewProps) {
   const days = React.useMemo(
     () =>
@@ -67,6 +70,7 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
   const tasksByDay = React.useMemo(() => {
     const map = new Map<string, { colors: string[]; count: number }>();
     for (const task of tasks) {
+      if (task.status === "done") continue; // el punto avisa de lo pendiente
       const key = dateKeyOf(task.date);
       const entry = map.get(key) ?? { colors: [], count: 0 };
       const color = taskColor(task);

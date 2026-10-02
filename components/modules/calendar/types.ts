@@ -145,6 +145,9 @@ export function toEditable(
 /** Tarea con fecha reducida a lo necesario para pintar su punto en el mes. */
 export interface TaskDayDTO {
   id: number;
+  title: string;
+  status: string;
+  time: string | null;
   date: string;
   urgent: boolean;
   important: boolean;

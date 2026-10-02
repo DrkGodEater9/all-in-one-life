@@ -173,6 +173,7 @@ export function CalendarClient() {
         <WeekView
           cursor={cursor}
           events={events}
+          tasks={taskDays}
           onSelectDay={openDay}
           onSelectEvent={(event) => openEdit(toEditable(event))}
         />
