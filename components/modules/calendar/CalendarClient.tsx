@@ -12,7 +12,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +24,7 @@ import { toDateKey } from "@/lib/utils";
 
 import { DayView } from "./DayView";
 import { EventFormDialog } from "./EventFormDialog";
+import { EventPickerDialog } from "./EventPickerDialog";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
 import { toEditable, type CalendarEventDTO, type EditableEvent, type TaskDayDTO } from "./types";
@@ -52,6 +53,7 @@ export function CalendarClient() {
   const [loading, setLoading] = React.useState(true);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<EditableEvent | null>(null);
 
   const range = React.useMemo(() => rangeFor(view, cursor), [view, cursor]);
@@ -131,11 +133,18 @@ export function CalendarClient() {
         title="Calendario"
         description="Eventos, recordatorios y tareas con fecha."
         action={
-          <Button onClick={openCreate} aria-label="Crear evento">
-            <CalendarPlus className="h-4 w-4" />
-            <span className="ml-2 hidden sm:inline">Nuevo evento</span>
-            <span className="ml-2 sm:hidden">Nuevo</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setPickerOpen(true)} aria-label="Editar eventos">
+              <Pencil className="h-4 w-4" />
+              <span className="ml-2 hidden sm:inline">Editar eventos</span>
+              <span className="ml-2 sm:hidden">Editar</span>
+            </Button>
+            <Button onClick={openCreate} aria-label="Crear evento">
+              <CalendarPlus className="h-4 w-4" />
+              <span className="ml-2 hidden sm:inline">Nuevo evento</span>
+              <span className="ml-2 sm:hidden">Nuevo</span>
+            </Button>
+          </div>
         }
       />
 
@@ -186,6 +195,15 @@ export function CalendarClient() {
           onCreate={openCreate}
         />
       )}
+
+      <EventPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onPick={(event) => {
+          setPickerOpen(false);
+          openEdit(event);
+        }}
+      />
 
       <EventFormDialog
         open={dialogOpen}
