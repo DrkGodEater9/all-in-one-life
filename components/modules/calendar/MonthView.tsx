@@ -32,6 +32,8 @@ interface DayItem {
   dotClass?: string;
   /** Color CSS (tareas). */
   color?: string;
+  /** Tarea completada: se muestra tachada y atenuada. */
+  done?: boolean;
 }
 
 interface MonthViewProps {
@@ -82,8 +84,12 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
       });
     }
     for (const task of tasks) {
-      if (task.status === "done") continue; // solo lo pendiente
-      push(dateKeyOf(task.date), { id: `t-${task.id}`, title: task.title, color: taskColor(task) });
+      push(dateKeyOf(task.date), {
+        id: `t-${task.id}`,
+        title: task.title,
+        color: taskColor(task),
+        done: task.status === "done",
+      });
     }
     return map;
   }, [events, tasks]);
@@ -150,7 +156,9 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
                       className={cn("h-full w-[3px] shrink-0", item.dotClass)}
                       style={item.color ? { backgroundColor: item.color } : undefined}
                     />
-                    <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                    <span className={cn("min-w-0 flex-1 truncate", item.done && "line-through opacity-60")}>
+                      {item.title}
+                    </span>
                   </span>
                 ))}
               </span>
