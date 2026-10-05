@@ -96,7 +96,7 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
   }, [itemsByDay]);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+    <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-border bg-surface">
      <div className="w-max">
       <div className={cn("grid border-b border-border", GRID_COLS)}>
         {WEEKDAYS.map((d, i) => (
