@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { Columns3, LayoutGrid, List, Plus } from "lucide-react";
 import { ApiClientError, api } from "@/lib/api";
 import { toDateKey } from "@/lib/utils";
 import {
@@ -26,6 +26,7 @@ import {
 } from "./constants";
 import { isOverdue } from "./format";
 import { EisenhowerMatrix } from "./EisenhowerMatrix";
+import { KanbanBoard } from "./KanbanBoard";
 import { TaskList } from "./TaskList";
 import { TaskDialog, type TaskFormPayload } from "./TaskDialog";
 import { nextStatus } from "./TaskCard";
@@ -124,9 +125,8 @@ export function TasksClient() {
   // Estado, borrado y guardado
   // ─────────────────────────────────────
 
-  const handleAdvanceStatus = React.useCallback(
-    async (task: TaskDTO) => {
-      const status: TaskStatus = nextStatus(task.status);
+  const handleSetStatus = React.useCallback(
+    async (task: TaskDTO, status: TaskStatus) => {
       const previousStatus = task.status; // revert por id, no snapshot del array
 
       setTasks((current) =>
@@ -162,6 +162,11 @@ export function TasksClient() {
       }
     },
     [refresh]
+  );
+
+  const handleAdvanceStatus = React.useCallback(
+    (task: TaskDTO) => handleSetStatus(task, nextStatus(task.status)),
+    [handleSetStatus]
   );
 
   const handleDelete = React.useCallback(async (task: TaskDTO) => {
@@ -308,6 +313,10 @@ export function TasksClient() {
               <List />
               Lista
             </TabsTrigger>
+            <TabsTrigger value="kanban">
+              <Columns3 />
+              Kanban
+            </TabsTrigger>
           </TabsList>
 
           <Button size="sm" onClick={() => openCreate("do")}>
@@ -337,6 +346,17 @@ export function TasksClient() {
             onAdvanceStatus={handleAdvanceStatus}
             onDelete={handleDelete}
             onCreate={() => openCreate("do")}
+          />
+        </TabsContent>
+
+        <TabsContent value="kanban">
+          <KanbanBoard
+            tasks={tasks}
+            loading={loading}
+            onSetStatus={handleSetStatus}
+            onOpen={openEdit}
+            onAdvanceStatus={handleAdvanceStatus}
+            onDelete={handleDelete}
           />
         </TabsContent>
       </Tabs>
