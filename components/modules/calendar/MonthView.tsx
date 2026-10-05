@@ -22,7 +22,7 @@ const WEEK_OPTS = { weekStartsOn: 1 as const, locale: es };
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
 /** Columnas de ancho fijo: las celdas no cambian de tamaño con el contenido. */
-const GRID_COLS = "grid-cols-[repeat(7,7.5rem)]";
+const GRID_COLS = "grid-cols-[repeat(7,9.5rem)]";
 const MAX_ITEMS = 4;
 
 interface DayItem {
