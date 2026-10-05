@@ -14,12 +14,25 @@ import {
 import { es } from "date-fns/locale";
 
 import { cn, toDateKey } from "@/lib/utils";
-import { CATEGORY_META, type EventCategory } from "./constants";
+import { CATEGORY_META } from "./constants";
 import { labelColorVar, QUADRANT_META, quadrantOf } from "@/components/modules/tasks/constants";
 import { dateKeyOf, type CalendarEventDTO, type TaskDayDTO } from "./types";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const, locale: es };
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
+
+/** Columnas de ancho fijo: las celdas no cambian de tamaño con el contenido. */
+const GRID_COLS = "grid-cols-[repeat(7,7.5rem)]";
+const MAX_ITEMS = 4;
+
+interface DayItem {
+  id: string;
+  title: string;
+  /** Clase de color (eventos). */
+  dotClass?: string;
+  /** Color CSS (tareas). */
+  color?: string;
+}
 
 interface MonthViewProps {
   cursor: Date;
@@ -53,37 +66,39 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
     [cursor]
   );
 
-  /** dateKey → categorías distintas con evento ese día (en orden fijo). */
-  const byDay = React.useMemo(() => {
-    const map = new Map<string, { categories: EventCategory[]; count: number }>();
+  /** dateKey → eventos y luego tareas pendientes de ese día, como chips. */
+  const itemsByDay = React.useMemo(() => {
+    const map = new Map<string, DayItem[]>();
+    const push = (key: string, item: DayItem) => {
+      const list = map.get(key) ?? [];
+      list.push(item);
+      map.set(key, list);
+    };
     for (const event of events) {
-      const key = dateKeyOf(event.date);
-      const entry = map.get(key) ?? { categories: [], count: 0 };
-      if (!entry.categories.includes(event.category)) entry.categories.push(event.category);
-      entry.count += 1;
-      map.set(key, entry);
+      push(dateKeyOf(event.date), {
+        id: `e-${event.id}`,
+        title: event.title,
+        dotClass: CATEGORY_META[event.category].dot,
+      });
     }
-    return map;
-  }, [events]);
-
-  /** dateKey → colores distintos de tareas pendientes ese día + cuántas son. */
-  const tasksByDay = React.useMemo(() => {
-    const map = new Map<string, { colors: string[]; count: number }>();
     for (const task of tasks) {
-      if (task.status === "done") continue; // el punto avisa de lo pendiente
-      const key = dateKeyOf(task.date);
-      const entry = map.get(key) ?? { colors: [], count: 0 };
-      const color = taskColor(task);
-      if (!entry.colors.includes(color)) entry.colors.push(color);
-      entry.count += 1;
-      map.set(key, entry);
+      if (task.status === "done") continue; // solo lo pendiente
+      push(dateKeyOf(task.date), { id: `t-${task.id}`, title: task.title, color: taskColor(task) });
     }
     return map;
-  }, [tasks]);
+  }, [events, tasks]);
+
+  /** dateKey → cuántos eventos/tareas, para el aria-label. */
+  const byDay = React.useMemo(() => {
+    const map = new Map<string, { count: number }>();
+    for (const [key, list] of itemsByDay) map.set(key, { count: list.length });
+    return map;
+  }, [itemsByDay]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <div className="grid grid-cols-7 border-b border-border">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+     <div className="w-max">
+      <div className={cn("grid border-b border-border", GRID_COLS)}>
         {WEEKDAYS.map((d, i) => (
           <div
             key={`${d}-${i}`}
@@ -94,11 +109,10 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
+      <div className={cn("grid", GRID_COLS)}>
         {days.map((day) => {
           const key = toDateKey(day);
           const entry = byDay.get(key);
-          const taskEntry = tasksByDay.get(key);
           const outside = !isSameMonth(day, cursor);
           const today = isToday(day);
 
@@ -108,10 +122,10 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
               type="button"
               onClick={() => onSelectDay(day)}
               aria-label={`${format(day, "d 'de' LLLL", { locale: es })}${
-                entry ? `, ${entry.count} evento(s)` : ""
-              }${taskEntry ? `, ${taskEntry.count} tarea(s)` : ""}`}
+                entry ? `, ${entry.count} evento(s) o tarea(s)` : ""
+              }`}
               className={cn(
-                "flex min-h-[3.75rem] flex-col items-center gap-1 border-b border-r border-border p-1.5 transition-colors sm:min-h-[5.5rem] sm:items-start sm:p-2",
+                "flex h-[8.5rem] flex-col items-start gap-1 overflow-hidden border-b border-r border-border p-1.5 transition-colors",
                 "hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/40",
                 outside && "text-text-3"
               )}
@@ -125,34 +139,26 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
                 {format(day, "d")}
               </span>
 
-              {entry || taskEntry ? (
-                <span className="flex flex-wrap items-center justify-center gap-1 sm:justify-start">
-                  {(entry?.categories ?? []).map((category) => (
+              <span className="flex w-full min-w-0 flex-col gap-0.5">
+                {(itemsByDay.get(key) ?? []).slice(0, MAX_ITEMS).map((item) => (
+                  <span
+                    key={item.id}
+                    title={item.title}
+                    className="flex h-[18px] w-full items-center gap-1 overflow-hidden rounded-sm bg-surface-2 pr-1 text-left text-[11px] leading-none text-text-2"
+                  >
                     <span
-                      key={category}
-                      title={CATEGORY_META[category].label}
-                      className={cn("h-1.5 w-1.5 rounded-full", CATEGORY_META[category].dot)}
+                      className={cn("h-full w-[3px] shrink-0", item.dotClass)}
+                      style={item.color ? { backgroundColor: item.color } : undefined}
                     />
-                  ))}
-                  {(taskEntry?.colors ?? []).map((color) => (
-                    <span
-                      key={color}
-                      title="Tarea"
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                  {entry && entry.count > entry.categories.length ? (
-                    <span className="hidden text-[10px] text-text-3 sm:inline">
-                      +{entry.count - entry.categories.length}
-                    </span>
-                  ) : null}
-                </span>
-              ) : null}
+                    <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                  </span>
+                ))}
+              </span>
             </button>
           );
         })}
       </div>
+     </div>
     </div>
   );
 }
