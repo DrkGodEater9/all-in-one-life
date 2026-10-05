@@ -157,11 +157,11 @@ export function CalendarClient() {
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <Button variant="outline" size="icon-sm" onClick={goPrev} aria-label="Anterior">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="min-w-[10rem] text-center text-sm capitalize text-text-2">{label}</span>
+          <span className="min-w-0 flex-1 text-center text-sm capitalize text-text-2 sm:min-w-[10rem] sm:flex-none">{label}</span>
           <Button variant="outline" size="icon-sm" onClick={goNext} aria-label="Siguiente">
             <ChevronRight className="h-4 w-4" />
           </Button>

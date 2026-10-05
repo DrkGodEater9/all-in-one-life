@@ -37,7 +37,7 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col",
-        "max-h-[92vh] overflow-hidden rounded-lg border border-border bg-surface text-text",
+        "max-h-[calc(100dvh-2rem)] overflow-hidden rounded-lg border border-border bg-surface text-text",
         "focus:outline-none data-[state=open]:animate-dialog-scale-in",
         className
       )}
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef<
       {children}
       {!hideClose && (
         <DialogPrimitive.Close
-          className="absolute right-4 top-4 rounded-sm p-1 text-text-2 transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-accent)_60%,transparent)] disabled:pointer-events-none"
+          className="absolute right-3 top-3 rounded-sm p-2 text-text-2 transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-accent)_60%,transparent)] disabled:pointer-events-none"
           aria-label="Cerrar"
         >
           <X className="h-4 w-4" />

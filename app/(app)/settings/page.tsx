@@ -5,9 +5,6 @@ import { SettingsClient } from "@/components/modules/settings/settings-client";
 export const metadata: Metadata = {
   title: "Configuración — Personal OS",
   description: "Metas nutricionales, zona horaria, agua y tema.",
-  icons: {
-    apple: "/icons/apple-touch-icon.svg",
-  },
 };
 
 export default function SettingsPage() {

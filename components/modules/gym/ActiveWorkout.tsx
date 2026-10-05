@@ -241,7 +241,7 @@ export function ActiveWorkout({ workoutId }: ActiveWorkoutProps) {
       )}
 
       {!finished ? (
-        <div className="sticky bottom-14 z-20 -mx-4 border-t border-border bg-bg/90 px-4 py-3 backdrop-blur md:bottom-4 md:mx-0 md:rounded-lg md:border">
+        <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-border bg-bg/90 px-4 py-3 backdrop-blur md:bottom-4 md:mx-0 md:rounded-lg md:border">
           <Button
             size="lg"
             className="w-full"

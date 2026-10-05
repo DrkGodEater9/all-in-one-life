@@ -161,7 +161,7 @@ export function FinanceClient() {
         aria-label={ADD_LABEL[tab]}
         title={ADD_LABEL[tab]}
         onClick={openAddForActiveTab}
-        className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full md:bottom-8 md:right-8"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 h-12 w-12 rounded-full md:bottom-8 md:right-8"
       >
         <Plus className="h-5 w-5" />
       </Button>

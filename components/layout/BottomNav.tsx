@@ -23,12 +23,12 @@ export function BottomNav() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2 transition-colors",
+                  "flex min-w-0 flex-col items-center justify-center gap-1 py-2 transition-colors",
                   active ? "text-accent" : "text-text-3 hover:text-text-2"
                 )}
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                <span className="text-[10px] leading-none">{item.label}</span>
+                <span className="max-w-full truncate px-0.5 text-[10px] leading-none">{item.label}</span>
               </Link>
             </li>
           );

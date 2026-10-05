@@ -11,9 +11,6 @@ import { ServiceWorkerRegister } from "@/components/modules/dashboard/service-wo
 export const metadata: Metadata = {
   title: "Personal OS",
   description: "Resumen del día: saldo, calorías, agenda, tareas, proyectos y rachas.",
-  icons: {
-    apple: "/icons/apple-touch-icon.svg",
-  },
 };
 
 /**

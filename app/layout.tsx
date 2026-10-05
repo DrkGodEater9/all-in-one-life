@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   title: "Personal OS",
   description: "Finanzas, salud, productividad y proyectos en un solo lugar.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    // iOS ignora el SVG: necesita un PNG para el ícono de la pantalla de inicio.
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     title: "Personal OS",
