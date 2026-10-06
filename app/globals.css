@@ -73,6 +73,9 @@
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
   }
 
   /* Motion solo funcional: 150ms de feedback de interacción. */
@@ -121,6 +124,19 @@
   }
   input[type="number"] {
     -moz-appearance: textfield;
+  }
+}
+
+/*
+ * iOS Safari: hace zoom automático al enfocar un campo con fuente < 16px y
+ * deja la página ampliada. Va fuera de @layer para ganarle a text-sm/text-xs.
+ * Solo en pantallas táctiles; en desktop se conserva el tamaño compacto.
+ */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
 

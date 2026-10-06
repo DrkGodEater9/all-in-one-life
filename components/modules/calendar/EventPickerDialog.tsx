@@ -113,7 +113,7 @@ export function EventPickerDialog({ open, onOpenChange, onPick }: EventPickerDia
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Buscar evento"
           />
-          <div className="max-h-[50vh] space-y-1 overflow-y-auto">
+          <div className="max-h-[50dvh] space-y-1 overflow-y-auto">
             {loading ? (
               <p className="py-6 text-center text-sm text-text-3">Cargando…</p>
             ) : rows.length === 0 ? (

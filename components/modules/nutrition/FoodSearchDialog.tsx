@@ -429,7 +429,7 @@ export function FoodSearchDialog({
                   />
                 </div>
 
-                <div className="mt-3 max-h-[46vh] overflow-y-auto">
+                <div className="mt-3 max-h-[46dvh] overflow-y-auto">
                   {searching ? (
                     <div className="space-y-2 py-2">
                       <Skeleton className="h-11 w-full" />
@@ -461,7 +461,7 @@ export function FoodSearchDialog({
               </TabsContent>
 
               <TabsContent value="favorites">
-                <div className="max-h-[52vh] overflow-y-auto">
+                <div className="max-h-[52dvh] overflow-y-auto">
                   {loadingFavorites ? (
                     <div className="space-y-2 py-2">
                       <Skeleton className="h-11 w-full" />

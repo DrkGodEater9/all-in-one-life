@@ -37,7 +37,7 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col",
-        "max-h-[calc(100dvh-2rem)] overflow-hidden rounded-lg border border-border bg-surface text-text",
+        "max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] overflow-hidden rounded-lg border border-border bg-surface text-text",
         "focus:outline-none data-[state=open]:animate-dialog-scale-in",
         className
       )}
@@ -76,7 +76,7 @@ const DialogBody = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4", className)}
+    className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4", className)}
     {...props}
   />
 );
@@ -88,7 +88,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex shrink-0 flex-col-reverse gap-2 border-t border-border px-5 py-3 sm:flex-row sm:justify-end",
+      "flex shrink-0 flex-col-reverse gap-2 border-t border-border px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end",
       className
     )}
     {...props}

@@ -27,7 +27,7 @@ export function Header({ title, action }: HeaderProps) {
     "";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur md:hidden">
+    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
       <div className="flex h-14 items-center justify-between gap-3 px-4">
         <Link href="/" className="text-lg tracking-tight text-text">
           Personal OS
