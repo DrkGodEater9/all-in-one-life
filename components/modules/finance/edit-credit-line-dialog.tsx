@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, ApiClientError } from "@/lib/api";
+import { decimalField, numberText } from "./form-fields";
 import {
   Button,
   Dialog,
@@ -21,14 +22,8 @@ import type { CreditLineDetail } from "./types";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Ponle un nombre").max(80),
-  creditLimit: z.string().refine(
-    (v) => v.trim() === "" || Number(v) > 0,
-    "El cupo debe ser mayor que cero"
-  ),
-  totalDebt: z.string().refine(
-    (v) => v.trim() === "" || Number(v) >= 0,
-    "El total a pagar no puede ser negativo"
-  ),
+  creditLimit: numberText({ label: "el cupo", required: false }),
+  totalDebt: numberText({ label: "el total", required: false, positive: false }),
 });
 
 type Values = z.infer<typeof schema>;
@@ -100,13 +95,9 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
               <Label htmlFor="edit-credit-limit">Cupo total (opcional)</Label>
               <Input
                 id="edit-credit-limit"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
                 placeholder="0.00"
                 className="font-mono tabular-nums"
-                {...form.register("creditLimit")}
+                {...decimalField(form.register("creditLimit"))}
               />
               {errors.creditLimit ? (
                 <p className="text-xs text-danger">{errors.creditLimit.message}</p>
@@ -117,13 +108,9 @@ export function EditCreditLineDialog({ line, onOpenChange, onSaved }: EditCredit
               <Label htmlFor="edit-credit-debt">Total a pagar (opcional)</Label>
               <Input
                 id="edit-credit-debt"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
                 placeholder="0.00"
                 className="font-mono tabular-nums"
-                {...form.register("totalDebt")}
+                {...decimalField(form.register("totalDebt"))}
               />
               {errors.totalDebt ? (
                 <p className="text-xs text-danger">{errors.totalDebt.message}</p>

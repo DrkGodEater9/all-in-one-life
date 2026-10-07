@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Path, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTheme } from "next-themes";
@@ -28,15 +28,27 @@ import {
 import type { Goal } from "@/components/modules/nutrition/types";
 import { DEFAULT_WATER_GOAL_ML, usePreferences } from "./use-preferences";
 
+/** Registro RHF que deja pasar solo dígitos (filtra en onChange). */
+function digitsOnly<T extends Record<string, unknown>>(form: UseFormReturn<T>, name: Path<T>) {
+  const reg = form.register(name);
+  return {
+    ...reg,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.target.value = e.target.value.replace(/D/g, "");
+      return reg.onChange(e);
+    },
+  };
+}
+
 // ─────────────────────────────────────────
 // Metas nutricionales — GET/PUT /api/nutrition/goals (ya existe)
 // ─────────────────────────────────────────
 
 const goalsSchema = z.object({
-  kcal: z.coerce.number().int().min(500, "Mínimo 500").max(10000, "Máximo 10000"),
-  proteinG: z.coerce.number().int().min(0).max(1000, "Máximo 1000"),
-  carbsG: z.coerce.number().int().min(0).max(2000, "Máximo 2000"),
-  fatG: z.coerce.number().int().min(0).max(500, "Máximo 500"),
+  kcal: z.coerce.number({ invalid_type_error: "Ingresa solo números" }).int("Debe ser entero").min(500, "Mínimo 500").max(10000, "Máximo 10000"),
+  proteinG: z.coerce.number({ invalid_type_error: "Ingresa solo números" }).int("Debe ser entero").min(0, "Mínimo 0").max(1000, "Máximo 1000"),
+  carbsG: z.coerce.number({ invalid_type_error: "Ingresa solo números" }).int("Debe ser entero").min(0, "Mínimo 0").max(2000, "Máximo 2000"),
+  fatG: z.coerce.number({ invalid_type_error: "Ingresa solo números" }).int("Debe ser entero").min(0, "Mínimo 0").max(500, "Máximo 500"),
 });
 type GoalsValues = z.infer<typeof goalsSchema>;
 
@@ -124,10 +136,13 @@ function NutritionGoalsSection() {
                 <Label htmlFor="kcal">Calorías (kcal)</Label>
                 <Input
                   id="kcal"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={5}
                   className="font-mono"
-                  {...form.register("kcal")}
+                  {...digitsOnly(form, "kcal")}
                 />
                 {form.formState.errors.kcal ? (
                   <p className="text-xs text-danger">{form.formState.errors.kcal.message}</p>
@@ -137,10 +152,13 @@ function NutritionGoalsSection() {
                 <Label htmlFor="proteinG">Proteína (g)</Label>
                 <Input
                   id="proteinG"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={4}
                   className="font-mono"
-                  {...form.register("proteinG")}
+                  {...digitsOnly(form, "proteinG")}
                 />
                 {form.formState.errors.proteinG ? (
                   <p className="text-xs text-danger">{form.formState.errors.proteinG.message}</p>
@@ -150,10 +168,13 @@ function NutritionGoalsSection() {
                 <Label htmlFor="carbsG">Carbohidratos (g)</Label>
                 <Input
                   id="carbsG"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={4}
                   className="font-mono"
-                  {...form.register("carbsG")}
+                  {...digitsOnly(form, "carbsG")}
                 />
                 {form.formState.errors.carbsG ? (
                   <p className="text-xs text-danger">{form.formState.errors.carbsG.message}</p>
@@ -163,10 +184,13 @@ function NutritionGoalsSection() {
                 <Label htmlFor="fatG">Grasa (g)</Label>
                 <Input
                   id="fatG"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={3}
                   className="font-mono"
-                  {...form.register("fatG")}
+                  {...digitsOnly(form, "fatG")}
                 />
                 {form.formState.errors.fatG ? (
                   <p className="text-xs text-danger">{form.formState.errors.fatG.message}</p>
@@ -215,7 +239,7 @@ function useTimezoneOptions() {
 
 const preferencesSchema = z.object({
   timezone: z.string().min(1, "Selecciona una zona horaria"),
-  waterGoalMl: z.coerce.number().int().min(250, "Mínimo 250 ml").max(10000, "Máximo 10000 ml"),
+  waterGoalMl: z.coerce.number({ invalid_type_error: "Ingresa solo números" }).int("Debe ser entero").min(250, "Mínimo 250 ml").max(10000, "Máximo 10000 ml"),
 });
 type PreferencesValues = z.infer<typeof preferencesSchema>;
 
@@ -283,11 +307,13 @@ function PreferencesSection() {
                 <Label htmlFor="waterGoalMl">Objetivo de agua diario (ml)</Label>
                 <Input
                   id="waterGoalMl"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
-                  step={250}
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={5}
                   className="font-mono"
-                  {...form.register("waterGoalMl")}
+                  {...digitsOnly(form, "waterGoalMl")}
                 />
                 {form.formState.errors.waterGoalMl ? (
                   <p className="text-xs text-danger">

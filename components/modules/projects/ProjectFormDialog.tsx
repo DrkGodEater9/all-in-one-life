@@ -145,6 +145,7 @@ export function ProjectFormDialog({
               <Input
                 id="project-title"
                 autoFocus
+                maxLength={200}
                 placeholder="Ej. App de finanzas personales"
                 {...register("title")}
               />
@@ -158,6 +159,7 @@ export function ProjectFormDialog({
               <Textarea
                 id="project-description"
                 rows={3}
+                maxLength={5000}
                 placeholder="De qué va el proyecto"
                 {...register("description")}
               />
@@ -216,6 +218,7 @@ export function ProjectFormDialog({
                 <Label htmlFor="project-new-category">Nombre de la categoría</Label>
                 <Input
                   id="project-new-category"
+                  maxLength={60}
                   placeholder="Ej. Software"
                   {...register("newCategory")}
                 />

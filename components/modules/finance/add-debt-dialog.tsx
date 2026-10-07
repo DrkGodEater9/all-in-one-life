@@ -19,18 +19,16 @@ import {
   Label,
   toast,
 } from "@/components/ui";
+import { decimalField, lettersField, numberText, personSchema } from "./form-fields";
 import { Segmented } from "./segmented";
 import { sourceLabel } from "./finance-utils";
 import type { Balance } from "./types";
 
 const schema = z.object({
   direction: z.enum(["i_owe", "they_owe_me"]),
-  person: z.string().trim().min(1, "Indica la persona").max(120),
+  person: personSchema,
   reason: z.string().trim().min(1, "Indica el motivo").max(240),
-  amount: z
-    .string()
-    .min(1, "Indica el monto")
-    .refine((v) => Number(v) > 0, "El monto debe ser mayor que cero"),
+  amount: numberText({ label: "el monto" }),
   sourceId: z.string().min(1, "Elige una fuente"),
   date: z.string().min(1, "Indica la fecha"),
 });
@@ -130,7 +128,11 @@ export function AddDebtDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="debt-person">Persona</Label>
-              <Input id="debt-person" placeholder="Nombre" {...form.register("person")} />
+              <Input
+                id="debt-person"
+                placeholder="Nombre"
+                {...lettersField(form.register("person"))}
+              />
               {errors.person ? (
                 <p className="text-xs text-danger">{errors.person.message}</p>
               ) : null}
@@ -152,13 +154,9 @@ export function AddDebtDialog({
               <Label htmlFor="debt-amount">Monto</Label>
               <Input
                 id="debt-amount"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
                 placeholder="0.00"
                 className="font-mono text-base tabular-nums"
-                {...form.register("amount")}
+                {...decimalField(form.register("amount"))}
               />
               {errors.amount ? (
                 <p className="text-xs text-danger">{errors.amount.message}</p>

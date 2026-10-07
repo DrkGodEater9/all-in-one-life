@@ -204,6 +204,7 @@ export function ProjectsClient() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                maxLength={200}
                 placeholder="Buscar proyecto"
                 className="pl-9"
                 aria-label="Buscar proyecto"

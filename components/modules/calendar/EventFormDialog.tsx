@@ -381,7 +381,18 @@ export function EventFormDialog({
 
                     <div className="space-y-1.5">
                       <Label htmlFor="event-interval">Cada</Label>
-                      <Input id="event-interval" inputMode="numeric" {...register("intervalN")} />
+                      <Input
+                        id="event-interval"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={2}
+                        {...register("intervalN", {
+                          onChange: (e) => {
+                            e.target.value = e.target.value.replace(/\D/g, "");
+                          },
+                        })}
+                      />
                       {errors.intervalN ? (
                         <p className="text-xs text-danger">{errors.intervalN.message}</p>
                       ) : null}
@@ -438,10 +449,13 @@ export function EventFormDialog({
                   </Label>
                   <Input
                     id="reminder-days"
+                    type="text"
                     inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={3}
                     className="w-20"
                     value={customDaysBefore}
-                    onChange={(e) => setCustomDaysBefore(e.target.value)}
+                    onChange={(e) => setCustomDaysBefore(e.target.value.replace(/\D/g, ""))}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -461,7 +475,7 @@ export function EventFormDialog({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const days = Number(customDaysBefore);
+                    const days = customDaysBefore === "" ? Number.NaN : Number(customDaysBefore);
                     if (!TIME_RE.test(customTime) || !Number.isInteger(days) || days < 0 || days > 365) {
                       toast({
                         variant: "destructive",

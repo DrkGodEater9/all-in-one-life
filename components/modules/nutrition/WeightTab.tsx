@@ -26,13 +26,15 @@ import {
 } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
+import { sanitizeDecimal } from "./numeric";
 import type { WeightLog } from "./types";
 
 const schema = z.object({
   weightKg: z
     .number({ invalid_type_error: "Escribe tu peso" })
+    .finite("Escribe tu peso")
     .positive("Debe ser mayor que 0")
-    .max(500, "Valor fuera de rango"),
+    .max(500, "Valor fuera de rango (máx. 500 kg)"),
 });
 type Values = z.infer<typeof schema>;
 
@@ -135,12 +137,17 @@ export function WeightTab({
             <Label htmlFor="weightKg">Peso (kg)</Label>
             <Input
               id="weightKg"
-              type="number"
+              type="text"
               inputMode="decimal"
-              step="0.1"
-              min="1"
+              autoComplete="off"
               className="font-mono"
-              {...form.register("weightKg", { valueAsNumber: true })}
+              {...form.register("weightKg", {
+                setValueAs: (v) =>
+                  typeof v === "string" ? (v.trim() === "" ? NaN : Number(v.replace(",", "."))) : v,
+                onChange: (e) => {
+                  e.target.value = sanitizeDecimal(e.target.value, 1, 3);
+                },
+              })}
             />
             {form.formState.errors.weightKg ? (
               <p className="text-xs text-danger">

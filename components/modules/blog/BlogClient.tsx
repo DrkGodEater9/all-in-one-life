@@ -120,6 +120,7 @@ export function BlogClient() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            maxLength={200}
             placeholder="Buscar en el blog"
             className="pl-9"
             aria-label="Buscar en el blog"

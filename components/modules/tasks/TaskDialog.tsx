@@ -85,6 +85,7 @@ const formSchema = z
     frequency: z.enum(RECURRENCE_FREQUENCIES),
     intervalN: z
       .number({ invalid_type_error: "Indica un número" })
+      .finite("Indica un número")
       .int("Debe ser un entero")
       .min(1, "Mínimo 1")
       .max(365, "Máximo 365"),
@@ -538,11 +539,20 @@ export function TaskDialog({
                     </Label>
                     <Input
                       id="task-interval"
-                      type="number"
-                      min={1}
-                      max={365}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={3}
                       className="num"
-                      {...register("intervalN", { valueAsNumber: true })}
+                      {...register("intervalN", {
+                        setValueAs: (v) => {
+                          const digits = String(v ?? "").replace(/\D/g, "");
+                          return digits === "" ? Number.NaN : Number(digits);
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value.replace(/\D/g, "");
+                        },
+                      })}
                     />
                     <FieldError message={errors.intervalN?.message} />
                   </div>

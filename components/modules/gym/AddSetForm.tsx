@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Plus } from "lucide-react";
 import { Button, Input, Label, toast } from "@/components/ui";
 import { api, ApiClientError } from "@/lib/api";
+import { sanitizeDecimal, sanitizeInteger } from "@/components/modules/gym/numeric";
 import type { ExerciseType, WorkoutSet } from "@/components/modules/gym/types";
 
 /** Controles grandes: esta pantalla se usa con el teléfono en la mano. */
@@ -14,26 +15,35 @@ const inputClass = "h-12 font-mono text-base tabular-nums";
 
 const toNumber = (value: string) => Number(value.trim().replace(",", "."));
 
-const requiredPositive = (message: string) =>
+const requiredPositive = (message: string, max = 999) =>
   z
     .string()
     .trim()
     .min(1, "Requerido")
-    .refine((value) => Number.isFinite(toNumber(value)) && toNumber(value) > 0, message);
+    .refine(
+      (value) =>
+        Number.isFinite(toNumber(value)) && toNumber(value) > 0 && toNumber(value) <= max,
+      message
+    );
 
-const requiredNonNegative = (message: string) =>
+const requiredNonNegative = (message: string, max = 1000) =>
   z
     .string()
     .trim()
     .min(1, "Requerido")
-    .refine((value) => Number.isFinite(toNumber(value)) && toNumber(value) >= 0, message);
+    .refine(
+      (value) =>
+        Number.isFinite(toNumber(value)) && toNumber(value) >= 0 && toNumber(value) <= max,
+      message
+    );
 
-const optionalNonNegative = (message: string) =>
+const optionalNonNegative = (message: string, max = 9999) =>
   z
     .string()
     .trim()
     .refine(
-      (value) => value === "" || (Number.isFinite(toNumber(value)) && toNumber(value) >= 0),
+      (value) => value === "" ||
+        (Number.isFinite(toNumber(value)) && toNumber(value) >= 0 && toNumber(value) <= max),
       message
     );
 
@@ -86,8 +96,8 @@ function FieldError({ message }: { message?: string }) {
 // ── weight: reps + kg ────────────────────────────────────────────
 
 const weightSchema = z.object({
-  weightKg: requiredNonNegative("Peso inválido"),
-  reps: requiredPositive("Reps inválidas"),
+  weightKg: requiredNonNegative("Peso inválido (0 a 1000 kg)"),
+  reps: requiredPositive("Reps inválidas (1 a 999)"),
 });
 type WeightValues = z.infer<typeof weightSchema>;
 
@@ -127,12 +137,11 @@ function WeightSetForm({
         </Label>
         <Input
           id={`kg-${exerciseName}`}
-          type="number"
+          type="text"
           inputMode="decimal"
-          step="0.5"
-          min="0"
+          autoComplete="off"
           className={inputClass}
-          {...register("weightKg")}
+          {...register("weightKg", { onChange: (e) => { e.target.value = sanitizeDecimal(e.target.value, 2, 4); } })}
         />
         <FieldError message={errors.weightKg?.message} />
       </div>
@@ -142,12 +151,11 @@ function WeightSetForm({
         </Label>
         <Input
           id={`reps-${exerciseName}`}
-          type="number"
+          type="text"
           inputMode="numeric"
-          step="1"
-          min="1"
+          autoComplete="off"
           className={inputClass}
-          {...register("reps")}
+          {...register("reps", { onChange: (e) => { e.target.value = sanitizeInteger(e.target.value, 3); } })}
         />
         <FieldError message={errors.reps?.message} />
       </div>
@@ -161,7 +169,7 @@ function WeightSetForm({
 
 // ── bodyweight: reps ─────────────────────────────────────────────
 
-const bodyweightSchema = z.object({ reps: requiredPositive("Reps inválidas") });
+const bodyweightSchema = z.object({ reps: requiredPositive("Reps inválidas (1 a 999)") });
 type BodyweightValues = z.infer<typeof bodyweightSchema>;
 
 function BodyweightSetForm({
@@ -196,12 +204,11 @@ function BodyweightSetForm({
         </Label>
         <Input
           id={`reps-${exerciseName}`}
-          type="number"
+          type="text"
           inputMode="numeric"
-          step="1"
-          min="1"
+          autoComplete="off"
           className={inputClass}
-          {...register("reps")}
+          {...register("reps", { onChange: (e) => { e.target.value = sanitizeInteger(e.target.value, 3); } })}
         />
         <FieldError message={errors.reps?.message} />
       </div>
@@ -218,8 +225,8 @@ function BodyweightSetForm({
 const cardioSchema = z
   .object({
     minutes: optionalNonNegative("Minutos inválidos"),
-    seconds: optionalNonNegative("Segundos inválidos"),
-    distanceKm: optionalNonNegative("Distancia inválida"),
+    seconds: optionalNonNegative("Segundos inválidos (0 a 59)", 59),
+    distanceKm: optionalNonNegative("Distancia inválida (máx. 999 km)", 999),
   })
   .refine(
     (values) =>
@@ -273,12 +280,11 @@ function CardioSetForm({
           </Label>
           <Input
             id={`min-${exerciseName}`}
-            type="number"
+            type="text"
             inputMode="numeric"
-            step="1"
-            min="0"
+            autoComplete="off"
             className={inputClass}
-            {...register("minutes")}
+            {...register("minutes", { onChange: (e) => { e.target.value = sanitizeInteger(e.target.value, 4); } })}
           />
         </div>
         <div>
@@ -287,13 +293,11 @@ function CardioSetForm({
           </Label>
           <Input
             id={`sec-${exerciseName}`}
-            type="number"
+            type="text"
             inputMode="numeric"
-            step="1"
-            min="0"
-            max="59"
+            autoComplete="off"
             className={inputClass}
-            {...register("seconds")}
+            {...register("seconds", { onChange: (e) => { e.target.value = sanitizeInteger(e.target.value, 2); } })}
           />
         </div>
         <div>
@@ -302,12 +306,11 @@ function CardioSetForm({
           </Label>
           <Input
             id={`km-${exerciseName}`}
-            type="number"
+            type="text"
             inputMode="decimal"
-            step="0.1"
-            min="0"
+            autoComplete="off"
             className={inputClass}
-            {...register("distanceKm")}
+            {...register("distanceKm", { onChange: (e) => { e.target.value = sanitizeDecimal(e.target.value, 2, 3); } })}
           />
         </div>
       </div>

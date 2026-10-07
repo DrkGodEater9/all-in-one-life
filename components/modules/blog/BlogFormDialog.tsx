@@ -94,6 +94,7 @@ export function BlogFormDialog({
                 rows={10}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                maxLength={50000}
                 placeholder="Escribe aquí…"
               />
             </div>

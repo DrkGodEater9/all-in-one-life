@@ -71,6 +71,7 @@ export function TagPicker({
       <Input
         value={draft}
         disabled={disabled}
+        maxLength={50}
         placeholder={placeholder}
         onChange={(e) => {
           const next = e.target.value;

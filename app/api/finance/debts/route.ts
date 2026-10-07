@@ -23,7 +23,12 @@ const filtersSchema = z.object({
 
 const createSchema = z.object({
   direction: z.enum(["i_owe", "they_owe_me"]),
-  person: z.string().trim().min(1, "Indica la persona").max(120),
+  person: z
+    .string()
+    .trim()
+    .min(1, "Indica la persona")
+    .max(120)
+    .regex(/^[\p{L}\s'’-]+$/u, "La persona solo puede llevar letras"),
   reason: z.string().trim().min(1, "Indica el motivo").max(240),
   amount: amountSchema,
   sourceId: z.number().int().positive(),

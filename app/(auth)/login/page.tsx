@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const schema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(1, "Ingresa tu contraseña"),
+  email: z.string().trim().min(1, "Ingresa tu email").email("Email inválido").max(254, "Email demasiado largo"),
+  password: z.string().min(1, "Ingresa tu contraseña").max(256, "Contraseña demasiado larga"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -64,6 +64,10 @@ function LoginForm() {
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={254}
               placeholder="tu@email.com"
               {...register("email")}
             />
@@ -78,6 +82,7 @@ function LoginForm() {
               id="password"
               type="password"
               autoComplete="current-password"
+              maxLength={256}
               placeholder="••••••••"
               {...register("password")}
             />

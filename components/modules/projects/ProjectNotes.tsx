@@ -57,6 +57,7 @@ export function ProjectNotes({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
         <Textarea
           rows={2}
+          maxLength={5000}
           placeholder="Añadir una nota"
           aria-label="Nueva nota"
           {...register("content")}

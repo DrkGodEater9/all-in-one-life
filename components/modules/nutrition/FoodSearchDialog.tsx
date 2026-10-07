@@ -35,14 +35,16 @@ import {
   type FoodState,
   type MealType,
 } from "./types";
+import { sanitizeDecimal } from "./numeric";
 
 const STATES: FoodState[] = ["raw", "cooked", "unknown"];
 
 const amountSchema = z.object({
   amountG: z
     .number({ invalid_type_error: "Escribe los gramos" })
+    .finite("Escribe los gramos")
     .positive("Debe ser mayor que 0")
-    .max(10000, "Demasiado"),
+    .max(10000, "Máximo 10000 g"),
   state: z.enum(["raw", "cooked", "unknown"]),
 });
 type AmountValues = z.infer<typeof amountSchema>;
@@ -318,12 +320,17 @@ export function FoodSearchDialog({
                 <Label htmlFor="amountG">Cantidad (g)</Label>
                 <Input
                   id="amountG"
-                  type="number"
+                  type="text"
                   inputMode="decimal"
-                  step="1"
-                  min="1"
+                  autoComplete="off"
                   className="font-mono"
-                  {...form.register("amountG", { valueAsNumber: true })}
+                  {...form.register("amountG", {
+                    setValueAs: (v) =>
+                      typeof v === "string" ? (v.trim() === "" ? NaN : Number(v.replace(",", "."))) : v,
+                    onChange: (e) => {
+                      e.target.value = sanitizeDecimal(e.target.value, 1, 5);
+                    },
+                  })}
                 />
                 {form.formState.errors.amountG ? (
                   <p className="text-xs text-danger">

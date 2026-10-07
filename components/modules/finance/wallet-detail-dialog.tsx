@@ -33,6 +33,7 @@ import {
   Stat,
   toast,
 } from "@/components/ui";
+import { decimalField, numberText } from "./form-fields";
 import { FINANCE_CATEGORIES } from "./constants";
 import { Segmented } from "./segmented";
 import {
@@ -65,10 +66,7 @@ export interface WalletSource {
 
 const addSchema = z.object({
   type: z.enum(["expense", "income"]),
-  amount: z
-    .string()
-    .min(1, "Indica el monto")
-    .refine((v) => Number(v) > 0, "El monto debe ser mayor que cero"),
+  amount: numberText({ label: "el monto" }),
   category: z.enum(FINANCE_CATEGORIES),
   date: z.string().min(1, "Indica la fecha"),
   notes: z.string().max(500).optional(),
@@ -345,13 +343,9 @@ export function WalletDetailDialog({ source, onOpenChange, onChanged }: WalletDe
                     <Label htmlFor="wallet-amount">Monto</Label>
                     <Input
                       id="wallet-amount"
-                      type="number"
-                      inputMode="decimal"
-                      step="0.01"
-                      min="0"
                       placeholder="0.00"
                       className="font-mono tabular-nums"
-                      {...addForm.register("amount")}
+                      {...decimalField(addForm.register("amount"))}
                     />
                   </div>
                   <div className="flex-1 space-y-1.5">

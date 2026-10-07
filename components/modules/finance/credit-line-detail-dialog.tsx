@@ -21,6 +21,7 @@ import {
   Skeleton,
   toast,
 } from "@/components/ui";
+import { decimalField, numberText } from "./form-fields";
 import { Segmented } from "./segmented";
 import { EditCreditLineDialog } from "./edit-credit-line-dialog";
 import { creditLineProgress, formatDateLabel } from "./finance-utils";
@@ -28,10 +29,7 @@ import type { CreditLineDetail, CreditMovement } from "./types";
 
 const schema = z.object({
   type: z.enum(["withdrawal", "payment"]),
-  amount: z
-    .string()
-    .min(1, "Indica el monto")
-    .refine((v) => Number(v) > 0, "El monto debe ser mayor que cero"),
+  amount: numberText({ label: "el monto" }),
   date: z.string().min(1, "Indica la fecha"),
   notes: z.string().max(500).optional(),
 });
@@ -248,13 +246,9 @@ export function CreditLineDetailDialog({
                     <Label htmlFor="mov-amount">Monto</Label>
                     <Input
                       id="mov-amount"
-                      type="number"
-                      inputMode="decimal"
-                      step="0.01"
-                      min="0"
                       placeholder="0.00"
                       className="font-mono tabular-nums"
-                      {...form.register("amount")}
+                      {...decimalField(form.register("amount"))}
                     />
                   </div>
                   <div className="flex-1 space-y-1.5">

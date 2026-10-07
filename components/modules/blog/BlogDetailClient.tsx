@@ -216,6 +216,7 @@ export function BlogDetailClient({ postId }: { postId: number }) {
               id="edit-content"
               rows={16}
               value={draftContent}
+              maxLength={50000}
               onChange={(e) => setDraftContent(e.target.value)}
             />
           </div>

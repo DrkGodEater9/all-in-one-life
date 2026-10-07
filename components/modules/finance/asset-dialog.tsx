@@ -18,19 +18,14 @@ import {
   Textarea,
   toast,
 } from "@/components/ui";
+import { MAX_QUANTITY, decimalField, numberText } from "./form-fields";
 import type { Asset } from "./types";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Indica un título").max(160),
-  quantity: z
-    .string()
-    .min(1, "Indica la cantidad")
-    .refine((v) => Number(v) > 0, "La cantidad debe ser mayor que cero"),
+  quantity: numberText({ label: "la cantidad", decimals: 4, max: MAX_QUANTITY }),
   unit: z.string().max(32).optional(),
-  priceEach: z
-    .string()
-    .optional()
-    .refine((v) => !v || Number(v) >= 0, "El precio no puede ser negativo"),
+  priceEach: numberText({ label: "el precio", required: false, positive: false }),
   notes: z.string().max(500).optional(),
 });
 
@@ -119,12 +114,8 @@ export function AssetDialog({ open, onOpenChange, asset, onSaved }: AssetDialogP
                 <Label htmlFor="asset-quantity">Cantidad</Label>
                 <Input
                   id="asset-quantity"
-                  type="number"
-                  inputMode="decimal"
-                  step="0.0001"
-                  min="0"
                   className="font-mono tabular-nums"
-                  {...form.register("quantity")}
+                  {...decimalField(form.register("quantity"), 4, 8)}
                 />
                 {errors.quantity ? (
                   <p className="text-xs text-danger">{errors.quantity.message}</p>
@@ -145,13 +136,9 @@ export function AssetDialog({ open, onOpenChange, asset, onSaved }: AssetDialogP
               <Label htmlFor="asset-price">Precio estimado por unidad</Label>
               <Input
                 id="asset-price"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
                 placeholder="Opcional"
                 className="font-mono tabular-nums"
-                {...form.register("priceEach")}
+                {...decimalField(form.register("priceEach"))}
               />
               {errors.priceEach ? (
                 <p className="text-xs text-danger">{errors.priceEach.message}</p>

@@ -64,6 +64,7 @@ export function ProjectLinks({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
+            maxLength={120}
             placeholder="Título (opcional)"
             aria-label="Título del link"
             className="sm:w-48"
@@ -73,6 +74,11 @@ export function ProjectLinks({
             placeholder="https://..."
             aria-label="URL del link"
             inputMode="url"
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="off"
+            spellCheck={false}
+            maxLength={2000}
             {...register("url")}
           />
           <Button type="submit" size="sm" disabled={isSubmitting} className="sm:h-9">

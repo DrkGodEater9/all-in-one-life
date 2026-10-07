@@ -22,15 +22,13 @@ import {
   Skeleton,
   toast,
 } from "@/components/ui";
+import { decimalField, numberText } from "./form-fields";
 import { DIRECTION_LABELS } from "./constants";
 import { debtProgress, formatDateLabel, pendingOf, sourceLabel } from "./finance-utils";
 import type { Debt, DebtPayment } from "./types";
 
 const schema = z.object({
-  amount: z
-    .string()
-    .min(1, "Indica el monto")
-    .refine((v) => Number(v) > 0, "El monto debe ser mayor que cero"),
+  amount: numberText({ label: "el monto" }),
   date: z.string().min(1, "Indica la fecha"),
 });
 
@@ -189,14 +187,9 @@ export function DebtDetailDialog({ debt, onOpenChange, onPaid }: DebtDetailDialo
                         <Label htmlFor="pay-amount">Monto</Label>
                         <Input
                           id="pay-amount"
-                          type="number"
-                          inputMode="decimal"
-                          step="0.01"
-                          min="0"
-                          max={pending}
                           placeholder="0.00"
                           className="font-mono tabular-nums"
-                          {...form.register("amount")}
+                          {...decimalField(form.register("amount"))}
                         />
                       </div>
                       <div className="flex-1 space-y-1.5">

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui";
 import { api, ApiClientError } from "@/lib/api";
 import { axisProps, lineProps, tooltipProps } from "@/components/modules/gym/chart-theme";
+import { sanitizeDecimal } from "@/components/modules/gym/numeric";
 import {
   MEASUREMENT_FIELDS,
   formatDateShort,
@@ -185,13 +186,16 @@ export function MeasurementsTab() {
                   <Label htmlFor={`measure-${field.key}`}>{field.label}</Label>
                   <Input
                     id={`measure-${field.key}`}
-                    type="number"
+                    type="text"
                     inputMode="decimal"
-                    step="0.1"
-                    min="0"
+                    autoComplete="off"
                     placeholder="cm"
                     className="h-11 font-mono tabular-nums"
-                    {...register(field.key)}
+                    {...register(field.key, {
+                      onChange: (e) => {
+                        e.target.value = sanitizeDecimal(e.target.value, 1, 3);
+                      },
+                    })}
                   />
                   {errors[field.key] ? (
                     <p className="text-xs text-danger">{errors[field.key]?.message}</p>

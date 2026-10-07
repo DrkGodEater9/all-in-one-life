@@ -98,6 +98,7 @@ function ConceptForm({
         value={definition}
         onChange={(e) => setDefinition(e.target.value)}
         rows={initial ? 5 : 3}
+        maxLength={10000}
         placeholder="Descripción o explicación"
         aria-label="Descripción"
       />

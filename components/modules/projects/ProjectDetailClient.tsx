@@ -423,6 +423,7 @@ export function ProjectDetailClient({ projectId }: { projectId: number }) {
                 autoFocus
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
+                maxLength={60}
                 placeholder="Nombre de la categoría"
                 aria-label="Nueva categoría"
                 onKeyDown={(e) => {
