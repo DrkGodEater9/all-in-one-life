@@ -22,7 +22,8 @@ const WEEK_OPTS = { weekStartsOn: 1 as const, locale: es };
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
 /** Columnas de ancho fijo: las celdas no cambian de tamaño con el contenido. */
-const GRID_COLS = "grid-cols-[repeat(7,9.5rem)]";
+// En móvil las 7 columnas se ajustan al ancho (solo puntos); desde sm, columnas anchas con scroll.
+const GRID_COLS = "grid-cols-7 sm:grid-cols-[repeat(7,9.5rem)]";
 const MAX_ITEMS = 4;
 
 interface DayItem {
@@ -102,8 +103,8 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
   }, [itemsByDay]);
 
   return (
-    <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-border bg-surface">
-     <div className="w-max">
+    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-border bg-surface sm:w-fit">
+     <div className="w-full sm:w-max">
       <div className={cn("grid border-b border-border", GRID_COLS)}>
         {WEEKDAYS.map((d, i) => (
           <div
@@ -131,7 +132,7 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
                 entry ? `, ${entry.count} evento(s) o tarea(s)` : ""
               }`}
               className={cn(
-                "flex h-[8.5rem] flex-col items-start gap-1 overflow-hidden border-b border-r border-border p-1.5 transition-colors",
+                "flex h-[4.5rem] min-w-0 flex-col items-center gap-1 overflow-hidden border-b border-r border-border p-1 transition-colors sm:h-[8.5rem] sm:items-start sm:p-1.5",
                 "hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/40",
                 outside && "text-text-3"
               )}
@@ -145,7 +146,18 @@ export function MonthView({ cursor, events, tasks = [], onSelectDay }: MonthView
                 {format(day, "d")}
               </span>
 
-              <span className="flex w-full min-w-0 flex-col gap-0.5">
+              {/* Móvil: puntos de colores, uno por evento/tarea. */}
+              <span className="flex max-w-full flex-wrap justify-center gap-0.5 sm:hidden">
+                {(itemsByDay.get(key) ?? []).slice(0, MAX_ITEMS).map((item) => (
+                  <span
+                    key={item.id}
+                    className={cn("h-1.5 w-1.5 rounded-full", item.dotClass, item.done && "opacity-40")}
+                    style={item.color ? { backgroundColor: item.color } : undefined}
+                  />
+                ))}
+              </span>
+
+              <span className="hidden w-full min-w-0 flex-col gap-0.5 sm:flex">
                 {(itemsByDay.get(key) ?? []).slice(0, MAX_ITEMS).map((item) => (
                   <span
                     key={item.id}

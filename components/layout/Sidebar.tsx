@@ -4,11 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Calendar,
   CircleCheck,
   Dumbbell,
   Home,
   Lightbulb,
+  NotebookPen,
   Salad,
   Settings,
   Wallet,
@@ -32,6 +34,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/calendar", label: "Calendario", icon: Calendar },
   { href: "/tasks", label: "Tareas", icon: CircleCheck },
   { href: "/projects", label: "Proyectos", icon: Lightbulb },
+  { href: "/blog", label: "Blog", icon: NotebookPen },
+  { href: "/concepts", label: "Conceptos", icon: BookOpen },
 ];
 
 export const SETTINGS_ITEM: NavItem = {

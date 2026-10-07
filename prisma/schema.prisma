@@ -430,3 +430,37 @@ model ProjectLink {
 
   project   Project @relation(fields: [projectId], references: [id])
 }
+
+// ── Blog (notas del grupo de investigación, etc.) ─────────────────────────
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  tags      String[]
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  links     BlogLink[]
+}
+
+/// "Docs" de una entrada: enlaces a documentos (Drive, Notion, PDFs, etc.)
+model BlogLink {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  title     String?
+  url       String
+  createdAt DateTime @default(now())
+
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+// ── Conceptos (glosario personal) ─────────────────────────────────────────
+model Concept {
+  id         Int      @id @default(autoincrement())
+  term       String
+  definition String
+  topic      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

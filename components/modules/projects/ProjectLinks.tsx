@@ -22,8 +22,12 @@ export function ProjectLinks({
   links,
   onAdd,
   onDelete,
+  title = "Links",
+  description = "Referencias, repos, documentos",
 }: {
-  links: ProjectLink[];
+  links: Pick<ProjectLink, "id" | "title" | "url">[];
+  title?: string;
+  description?: string;
   onAdd: (values: { title: string | null; url: string }) => Promise<void>;
   onDelete: (linkId: number) => Promise<void>;
 }) {
@@ -52,8 +56,8 @@ export function ProjectLinks({
   return (
     <section className="rounded-lg border border-border bg-surface p-4">
       <SectionHeader
-        title="Links"
-        description="Referencias, repos, documentos"
+        title={title}
+        description={description}
         className="mb-3"
       />
 
