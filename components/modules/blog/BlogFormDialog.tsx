@@ -102,6 +102,7 @@ export function BlogFormDialog({
             <div className="space-y-1.5">
               <Label>Etiquetas</Label>
               <TagPicker
+                maxTags={10}
                 value={tags}
                 onChange={setTags}
                 suggestions={tagSuggestions.map((name, i) => ({

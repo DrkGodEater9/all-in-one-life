@@ -222,7 +222,7 @@ export function BlogDetailClient({ postId }: { postId: number }) {
           </div>
           <div className="space-y-1.5">
             <Label>Etiquetas</Label>
-            <TagPicker value={draftTags} onChange={setDraftTags} />
+            <TagPicker value={draftTags} onChange={setDraftTags} maxTags={10} />
           </div>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>

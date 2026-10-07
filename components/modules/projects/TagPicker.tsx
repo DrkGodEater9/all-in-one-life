@@ -18,6 +18,7 @@ export function TagPicker({
   disabled = false,
   className,
   placeholder = "Añadir etiqueta y Enter",
+  maxTags,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
@@ -25,14 +26,20 @@ export function TagPicker({
   disabled?: boolean;
   className?: string;
   placeholder?: string;
+  /** Tope de etiquetas; al alcanzarlo el campo se bloquea. */
+  maxTags?: number;
 }) {
   const [draft, setDraft] = useState("");
 
   const selectedKeys = new Set(value.map((v) => v.toLowerCase()));
+  const full = maxTags !== undefined && value.length >= maxTags;
 
   function add(raw: string) {
     const name = raw.trim().replace(/,+$/, "").trim();
-    if (!name) return;
+    if (!name || full) {
+      setDraft("");
+      return;
+    }
     if (selectedKeys.has(name.toLowerCase())) {
       setDraft("");
       return;
@@ -70,9 +77,9 @@ export function TagPicker({
 
       <Input
         value={draft}
-        disabled={disabled}
+        disabled={disabled || full}
         maxLength={50}
-        placeholder={placeholder}
+        placeholder={full ? `Máximo ${maxTags} etiquetas` : placeholder}
         onChange={(e) => {
           const next = e.target.value;
           if (next.endsWith(",")) add(next);
@@ -96,7 +103,7 @@ export function TagPicker({
             <button
               key={tag.id}
               type="button"
-              disabled={disabled}
+              disabled={disabled || full}
               onClick={() => add(tag.name)}
               className="rounded-sm border border-border px-2 py-0.5 text-[11px] text-text-2 transition-colors hover:border-accent/50 hover:text-text disabled:opacity-50"
             >
