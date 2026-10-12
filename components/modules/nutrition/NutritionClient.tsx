@@ -13,6 +13,7 @@ const WeightTab = dynamic(() => import("./WeightTab").then((m) => m.WeightTab), 
   loading: () => <Skeleton className="h-64 w-full" />,
 });
 import { WaterTab } from "./WaterTab";
+import { RecipesTab } from "./RecipesTab";
 import type {
   DayLog,
   Streak,
@@ -114,6 +115,7 @@ export function NutritionClient() {
       <Tabs defaultValue="today">
         <TabsList>
           <TabsTrigger value="today">Hoy</TabsTrigger>
+          <TabsTrigger value="recipes">Recetas</TabsTrigger>
           <TabsTrigger value="weight">Peso</TabsTrigger>
           <TabsTrigger value="water">Agua</TabsTrigger>
         </TabsList>
@@ -125,6 +127,10 @@ export function NutritionClient() {
             loading={loadingDay || !date}
             onChanged={refreshDay}
           />
+        </TabsContent>
+
+        <TabsContent value="recipes">
+          <RecipesTab date={date ?? ""} onLogged={refreshDay} />
         </TabsContent>
 
         <TabsContent value="weight">

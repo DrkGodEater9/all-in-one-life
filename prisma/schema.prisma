@@ -201,6 +201,34 @@ model NutritionMealItem {
   favorite    NutritionFavorite?  @relation(fields: [favoriteId], references: [id])
 }
 
+/// Receta guardada: lista de ingredientes con gramos y macros ya escalados.
+/// Los items no referencian favoritos/caché: son una foto de los macros al guardar.
+model NutritionRecipe {
+  id        Int      @id @default(autoincrement())
+  name      String
+  mealType  String?  // sugerencia: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  createdAt DateTime @default(now())
+
+  items     NutritionRecipeItem[]
+}
+
+model NutritionRecipeItem {
+  id          Int      @id @default(autoincrement())
+  recipeId    Int
+  foodName    String
+  amountG     Decimal  @db.Decimal(8, 2)
+  state       String   @default("unknown") // 'raw' | 'cooked' | 'unknown'
+  kcal        Decimal  @db.Decimal(8, 2)
+  proteinG    Decimal  @db.Decimal(8, 2)
+  carbsG      Decimal  @db.Decimal(8, 2)
+  fatG        Decimal  @db.Decimal(8, 2)
+  isEstimated Boolean  @default(false)
+
+  recipe      NutritionRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+}
+
 model NutritionGoal {
   id        Int      @id @default(autoincrement())
   kcal      Int

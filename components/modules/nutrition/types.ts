@@ -101,6 +101,26 @@ export type Favorite = {
   createdAt: string;
 };
 
+export type RecipeItem = {
+  id: number;
+  foodName: string;
+  amountG: number;
+  state: FoodState;
+  kcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  isEstimated: boolean;
+};
+
+export type Recipe = {
+  id: number;
+  name: string;
+  mealType: MealType | null;
+  items: RecipeItem[];
+  totals: Macros;
+};
+
 export type WeightLog = {
   id: number;
   date: string;
