@@ -56,7 +56,7 @@ export function lettersField(reg: UseFormRegisterReturn) {
   return { ...filtered(reg, sanitizeLetters), autoComplete: "off" };
 }
 
-const DECIMAL_RE = (d: number) => new RegExp(`^\d+(\.\d{1,${d}})?$`);
+const DECIMAL_RE = (d: number) => new RegExp(`^\\d+(\\.\\d{1,${d}})?$`);
 
 /**
  * Esquema para un número escrito como texto. `required` exige valor;

@@ -76,4 +76,4 @@ prisma/          schema.prisma y seed.ts
 
 ## Fase 2
 
-Un agente de Telegram encima de esta misma API. No se construye aquí; el punto de extensión está marcado en `/api/cron/reminders`.
+Agente de IA conectado a un bot de Telegram, encima de los mismos datos. Estructura ya montada, falta el proveedor de LLM. Detalle en [`docs/AGENT.md`](docs/AGENT.md).

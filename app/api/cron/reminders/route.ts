@@ -2,6 +2,7 @@ import { assertCronSecret, withRoute } from "@/lib/auth";
 import { ok } from "@/lib/http";
 import { prisma } from "@/lib/db";
 import { formatTime } from "@/lib/utils";
+import { isTelegramConfigured, sendMessage } from "@/lib/telegram/client";
 import { addUtcDays, reminderTriggerAt, toDateKeyUTC } from "../../calendar/_lib";
 
 /** Cuántos recordatorios pendientes se revisan por ejecución. */
@@ -15,17 +16,14 @@ export interface ReminderNotification {
 }
 
 /**
- * Punto de extensión de FASE 2: aquí se enviará el mensaje por el
- * `notify_bot` de Telegram (o cualquier otro canal).
- *
- * En fase 1 no hace nada a propósito: el aviso se ve dentro de la app y el
- * recordatorio solo se marca como enviado. Para conectarlo basta con
- * implementar esta función (p. ej. POST a la Bot API con TELEGRAM_BOT_TOKEN y
- * TELEGRAM_CHAT_ID) sin tocar el resto de la ruta.
+ * Envía el aviso por Telegram al chat dueño (`TELEGRAM_CHAT_ID`). Si el bot no
+ * está configurado no hace nada y el recordatorio solo se marca como enviado,
+ * igual que en fase 1. Para otro canal, sustituir el cuerpo de esta función.
  */
-async function dispatchNotification(_notification: ReminderNotification): Promise<void> {
-  // TODO (fase 2): enviar por Telegram.
-  return;
+async function dispatchNotification(notification: ReminderNotification): Promise<void> {
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!isTelegramConfigured() || !chatId) return;
+  await sendMessage(chatId, notification.message);
 }
 
 /** Texto del aviso: título, hora, lugar y link si tiene. */
@@ -58,8 +56,8 @@ function buildMessage(event: {
  * 1. Busca recordatorios `isSent: false` cuyo momento de disparo
  *    (fecha del evento − `daysBefore`, a la hora `remindTime`) ya pasó.
  * 2. Prepara el mensaje de cada uno.
- * 3. Fase 2: lo manda por Telegram (ver `dispatchNotification`).
- * 4. Fase 1: solo marca `isSent: true`.
+ * 3. Lo manda por Telegram si está configurado (ver `dispatchNotification`).
+ * 4. Marca `isSent: true`.
  * 5. Devuelve el resumen de lo procesado.
  *
  * Nota: `@db.Date` y `@db.Time` se guardan en UTC, así que el disparo se
