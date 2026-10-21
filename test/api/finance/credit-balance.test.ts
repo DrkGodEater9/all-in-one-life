@@ -6,16 +6,16 @@ const W = (amount: number) => ({ type: "withdrawal", amount });
 const P = (amount: number) => ({ type: "payment", amount });
 
 describe("creditLineBalance", () => {
-  it("sin totalDebt: owed es null y los pagos liberan cupo", () => {
+  it("sin totalDebt: owed es null y los pagos NO liberan cupo", () => {
     const r = creditLineBalance([W(300), P(100)], 1000);
-    expect(r).toEqual({ used: 200, limit: 1000, available: 800, owed: null });
+    expect(r).toEqual({ used: 300, limit: 1000, available: 700, owed: null });
   });
 
   it("con totalDebt: la deuda y el cupo son independientes", () => {
     const r = creditLineBalance([W(100), P(250)], 1000, 500);
     expect(r.owed).toBe(250); // 500 - 250 (los retiros no cuentan)
-    expect(r.used).toBe(0); // la deuda registrada no consume cupo
-    expect(r.available).toBe(1000);
+    expect(r.used).toBe(100); // los pagos no devuelven cupo
+    expect(r.available).toBe(900);
     // Mismo cupo que sin deuda registrada
     expect(r.available).toBe(creditLineBalance([W(100), P(250)], 1000).available);
   });
