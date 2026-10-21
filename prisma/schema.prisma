@@ -209,6 +209,22 @@ model NutritionRecipe {
   mealType  String?  // sugerencia: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   createdAt DateTime @default(now())
 
+  // Tablero de recetas: agrupación, preparación y costo.
+  groupName   String?  // p. ej. "Desayunos con avena"; las del mismo grupo son intercambiables
+  description String?
+  servings    Int      @default(1) // porciones que rinde
+  prepMinutes Int?
+  steps       Json?    // [{ text: string, minutes?: number }]
+  storage     String?  // cómo guardarla
+  fridgeDays  Int?
+  tips        String[] @default([])
+  costCop     Int?     // costo por porción (COP)
+  // Macros por porción declarados; si existen sustituyen la suma de ingredientes.
+  kcal        Decimal? @db.Decimal(8, 2)
+  proteinG    Decimal? @db.Decimal(8, 2)
+  carbsG      Decimal? @db.Decimal(8, 2)
+  fatG        Decimal? @db.Decimal(8, 2)
+
   items     NutritionRecipeItem[]
 }
 
@@ -223,6 +239,10 @@ model NutritionRecipeItem {
   carbsG      Decimal  @db.Decimal(8, 2)
   fatG        Decimal  @db.Decimal(8, 2)
   isEstimated Boolean  @default(false)
+  quantity    Decimal? @db.Decimal(8, 2) // cantidad tal como se compra/cocina (4 und, 0.5 lata…)
+  unit        String?
+  costCop     Int?
+  store       String?
 
   recipe      NutritionRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 

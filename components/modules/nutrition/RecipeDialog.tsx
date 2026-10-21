@@ -14,6 +14,7 @@ import {
   Input,
   Label,
   Skeleton,
+  Textarea,
   toast,
 } from "@/components/ui";
 import { api, qs } from "@/lib/api";
@@ -40,6 +41,11 @@ type Row = {
   /** Solo al editar: el ingrediente viene de una receta guardada. */
   estimated?: boolean;
   amount: string;
+  /** Datos de compra que la edición conserva tal cual. */
+  quantity?: number | null;
+  unit?: string | null;
+  costCop?: number | null;
+  store?: string | null;
 };
 
 let rowSeq = 0;
@@ -74,6 +80,10 @@ function rowsFromRecipe(recipe: Recipe): Row[] {
       fat100g: i.fatG * f,
       estimated: i.isEstimated,
       amount: String(i.amountG),
+      quantity: i.quantity,
+      unit: i.unit,
+      costCop: i.costCop,
+      store: i.store,
     };
   });
 }
@@ -98,6 +108,11 @@ export function RecipeDialog({
   const [name, setName] = React.useState("");
   const [mealType, setMealType] = React.useState<MealType | null>(null);
   const [rows, setRows] = React.useState<Row[]>([]);
+  const [groupName, setGroupName] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [prepMinutes, setPrepMinutes] = React.useState("");
+  const [stepsText, setStepsText] = React.useState("");
+  const [storage, setStorage] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const [query, setQuery] = React.useState("");
@@ -112,6 +127,11 @@ export function RecipeDialog({
     setName(recipe?.name ?? "");
     setMealType(recipe?.mealType ?? null);
     setRows(recipe ? rowsFromRecipe(recipe) : []);
+    setGroupName(recipe?.groupName ?? "");
+    setDescription(recipe?.description ?? "");
+    setPrepMinutes(recipe?.prepMinutes != null ? String(recipe.prepMinutes) : "");
+    setStepsText(recipe?.steps.map((s) => s.text).join("\n") ?? "");
+    setStorage(recipe?.storage ?? "");
     setQuery("");
     setResults([]);
     setLoadingFavorites(true);
@@ -152,6 +172,7 @@ export function RecipeDialog({
   }, [query, open]);
 
   const totals = React.useMemo(() => {
+    if (recipe?.macrosDeclared) return recipe.totals;
     return rows.reduce(
       (acc, r) => {
         const f = amountOf(r) / 100;
@@ -164,7 +185,7 @@ export function RecipeDialog({
       },
       { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }
     );
-  }, [rows]);
+  }, [rows, recipe]);
 
   function addFood(food: FoodResult) {
     setRows((prev) => [
@@ -206,7 +227,35 @@ export function RecipeDialog({
     const payload = {
       name: cleanName,
       mealType,
+      groupName: groupName.trim() || null,
+      description: description.trim() || null,
+      prepMinutes: prepMinutes ? Math.round(Number(prepMinutes)) : null,
+      storage: storage.trim() || null,
+      // Lo que el formulario no edita se conserva tal cual al guardar.
+      servings: recipe?.servings,
+      fridgeDays: recipe?.fridgeDays ?? null,
+      tips: recipe?.tips,
+      macros: recipe?.macrosDeclared
+        ? {
+            kcal: recipe.totals.kcal,
+            proteinG: recipe.totals.proteinG,
+            carbsG: recipe.totals.carbsG,
+            fatG: recipe.totals.fatG,
+          }
+        : null,
+      steps: stepsText
+        .split("\n")
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((text) => ({
+          text,
+          minutes: recipe?.steps.find((s) => s.text === text)?.minutes ?? null,
+        })),
       items: rows.map((r) => ({
+        quantity: r.quantity ?? null,
+        unit: r.unit ?? null,
+        costCop: r.costCop ?? null,
+        store: r.store ?? null,
         foodName: r.foodName,
         // Los ingredientes con respaldo en catálogo los resuelve el servidor.
         favoriteId: r.favoriteId ?? undefined,
@@ -285,6 +334,42 @@ export function RecipeDialog({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="recipe-group">Grupo (opcional)</Label>
+              <Input
+                id="recipe-group"
+                value={groupName}
+                maxLength={80}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Desayunos con avena"
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="recipe-prep">Tiempo (min)</Label>
+              <Input
+                id="recipe-prep"
+                inputMode="numeric"
+                className="font-mono"
+                value={prepMinutes}
+                onChange={(e) => setPrepMinutes(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="recipe-desc">Descripción (opcional)</Label>
+            <Input
+              id="recipe-desc"
+              value={description}
+              maxLength={500}
+              onChange={(e) => setDescription(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label>Ingredientes</Label>
             {rows.length > 0 ? (
@@ -353,6 +438,28 @@ export function RecipeDialog({
                 </div>
               </div>
             ) : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="recipe-steps">Pasos (uno por línea)</Label>
+            <Textarea
+              id="recipe-steps"
+              rows={4}
+              value={stepsText}
+              onChange={(e) => setStepsText(e.target.value)}
+              placeholder={"Pica el tomate y la cebolla.\nSofríe con el aceite."}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="recipe-storage">Cómo guardarla (opcional)</Label>
+            <Input
+              id="recipe-storage"
+              value={storage}
+              maxLength={300}
+              onChange={(e) => setStorage(e.target.value)}
+              autoComplete="off"
+            />
           </div>
 
           <div className="space-y-2">

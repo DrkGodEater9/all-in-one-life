@@ -49,8 +49,24 @@ export const POST = withAuth<{ id: string }>(async ({ req, params }) => {
         data: { date, mealType: body.mealType },
       }));
 
+    // Recetas con macros declarados: un único renglón con los macros por porción.
+    const declared = recipe.kcal != null;
     await tx.nutritionMealItem.createMany({
-      data: recipe.items.map((i) => ({
+      data: declared
+        ? [
+            {
+              mealLogId: log.id,
+              foodName: recipe.name,
+              amountG: round2(recipe.items.reduce((t, i) => t + num(i.amountG), 0) * k),
+              state: "unknown",
+              kcal: round2(num(recipe.kcal) * k),
+              proteinG: round2(num(recipe.proteinG) * k),
+              carbsG: round2(num(recipe.carbsG) * k),
+              fatG: round2(num(recipe.fatG) * k),
+              isEstimated: true,
+            },
+          ]
+        : recipe.items.map((i) => ({
         mealLogId: log.id,
         foodName: i.foodName,
         amountG: round2(num(i.amountG) * k),
@@ -69,6 +85,6 @@ export const POST = withAuth<{ id: string }>(async ({ req, params }) => {
     mealLogId: meal.id,
     date: key,
     mealType: body.mealType,
-    itemsAdded: recipe.items.length,
+    itemsAdded: recipe.kcal != null ? 1 : recipe.items.length,
   });
 });

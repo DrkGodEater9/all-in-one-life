@@ -14,8 +14,10 @@ const WeightTab = dynamic(() => import("./WeightTab").then((m) => m.WeightTab), 
 });
 import { WaterTab } from "./WaterTab";
 import { RecipesTab } from "./RecipesTab";
+import { ShoppingTab, type PlanEntry } from "./ShoppingTab";
 import type {
   DayLog,
+  Recipe,
   Streak,
   Summary,
   WaterDay,
@@ -32,6 +34,44 @@ export function NutritionClient() {
   const [log, setLog] = React.useState<DayLog | null>(null);
   const [weights, setWeights] = React.useState<WeightLog[]>([]);
   const [water, setWater] = React.useState<WaterDay | null>(null);
+
+  const [recipes, setRecipes] = React.useState<Recipe[] | null>(null);
+  // Lista de compras: se recuerda en este navegador.
+  const [plan, setPlan] = React.useState<PlanEntry[]>([]);
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem("nutrition-shopping-plan");
+      if (raw) setPlan(JSON.parse(raw) as PlanEntry[]);
+    } catch {
+      /* sin almacenamiento: la lista vive solo en memoria */
+    }
+  }, []);
+  const updatePlan = React.useCallback((next: PlanEntry[]) => {
+    setPlan(next);
+    try {
+      localStorage.setItem("nutrition-shopping-plan", JSON.stringify(next));
+    } catch {
+      /* ignorar */
+    }
+  }, []);
+  const togglePlan = (id: number) =>
+    updatePlan(plan.some((p) => p.id === id) ? plan.filter((p) => p.id !== id) : [...plan, { id, servings: 1 }]);
+
+  const loadRecipes = React.useCallback(async () => {
+    try {
+      setRecipes(await api.get<Recipe[]>("/nutrition/recipes"));
+    } catch (error) {
+      setRecipes([]);
+      toast({
+        title: "No se pudieron cargar las recetas",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
+    }
+  }, []);
+  React.useEffect(() => {
+    void loadRecipes();
+  }, [loadRecipes]);
 
   const [loadingDay, setLoadingDay] = React.useState(true);
   const [loadingWeight, setLoadingWeight] = React.useState(true);
@@ -112,10 +152,13 @@ export function NutritionClient() {
         loading={loadingDay || !date}
       />
 
-      <Tabs defaultValue="today">
+      <Tabs defaultValue="recipes">
         <TabsList>
-          <TabsTrigger value="today">Hoy</TabsTrigger>
           <TabsTrigger value="recipes">Recetas</TabsTrigger>
+          <TabsTrigger value="shopping">
+            Compras{plan.length > 0 ? ` (${plan.length})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="today">Hoy</TabsTrigger>
           <TabsTrigger value="weight">Peso</TabsTrigger>
           <TabsTrigger value="water">Agua</TabsTrigger>
         </TabsList>
@@ -130,7 +173,18 @@ export function NutritionClient() {
         </TabsContent>
 
         <TabsContent value="recipes">
-          <RecipesTab date={date ?? ""} onLogged={refreshDay} />
+          <RecipesTab
+            date={date ?? ""}
+            recipes={recipes}
+            onReload={() => void loadRecipes()}
+            onLogged={refreshDay}
+            plan={plan.map((p) => p.id)}
+            onTogglePlan={togglePlan}
+          />
+        </TabsContent>
+
+        <TabsContent value="shopping">
+          <ShoppingTab recipes={recipes} plan={plan} onChange={updatePlan} />
         </TabsContent>
 
         <TabsContent value="weight">

@@ -111,12 +111,30 @@ export type RecipeItem = {
   carbsG: number;
   fatG: number;
   isEstimated: boolean;
+  quantity: number | null;
+  unit: string | null;
+  costCop: number | null;
+  store: string | null;
 };
+
+export type RecipeStep = { text: string; minutes?: number | null };
 
 export type Recipe = {
   id: number;
   name: string;
   mealType: MealType | null;
+  groupName: string | null;
+  description: string | null;
+  servings: number;
+  prepMinutes: number | null;
+  steps: RecipeStep[];
+  storage: string | null;
+  fridgeDays: number | null;
+  tips: string[];
+  /** Costo por porción en COP. */
+  costCop: number | null;
+  /** Macros declarados por porción (receta importada): los items no traen macros propios. */
+  macrosDeclared: boolean;
   items: RecipeItem[];
   totals: Macros;
 };

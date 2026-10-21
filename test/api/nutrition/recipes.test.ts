@@ -105,6 +105,30 @@ describe("POST /api/nutrition/recipes/[id]/log", () => {
     expect(prismaMock.nutritionMealItem.createMany.mock.calls[0][0].data[0].mealLogId).toBe(4);
   });
 
+  it("con macros declarados registra un único renglón escalado por porciones", async () => {
+    prismaMock.nutritionRecipe.findUnique.mockResolvedValue({
+      ...RECIPE,
+      kcal: 700,
+      proteinG: 45,
+      carbsG: 75,
+      fatG: 24,
+    });
+    prismaMock.nutritionMealLog.findFirst.mockResolvedValue({ id: 4 });
+    prismaMock.nutritionMealItem.createMany.mockResolvedValue({ count: 1 });
+
+    const { body }: { body: any } = await post(
+      logRecipe,
+      "/api/nutrition/recipes/1/log",
+      { mealType: "lunch", servings: 2 },
+      { id: "1" }
+    );
+
+    expect(body.itemsAdded).toBe(1);
+    const { data } = prismaMock.nutritionMealItem.createMany.mock.calls[0][0];
+    expect(data).toHaveLength(1);
+    expect(data[0]).toMatchObject({ foodName: "Bowl", kcal: 1400, proteinG: 90, isEstimated: true });
+  });
+
   it("responde 404 si la receta no existe", async () => {
     prismaMock.nutritionRecipe.findUnique.mockResolvedValue(null);
     const { status } = await post(

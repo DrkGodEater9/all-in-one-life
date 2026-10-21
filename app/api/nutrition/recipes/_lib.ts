@@ -31,6 +31,10 @@ export const ingredientSchema = z
     state: foodStateSchema.default("unknown"),
     /** Al editar una receta se reenvía el ingrediente como manual conservando su flag. */
     estimated: z.boolean().optional(),
+    quantity: z.number().positive().max(100000).nullable().optional(),
+    unit: z.string().trim().max(30).nullable().optional(),
+    costCop: z.number().int().min(0).max(10_000_000).nullable().optional(),
+    store: z.string().trim().max(80).nullable().optional(),
   })
   .refine(
     (b) =>
@@ -43,9 +47,31 @@ export const ingredientSchema = z
     }
   );
 
+const declaredMacrosSchema = z.object({
+  kcal: z.number().min(0).max(10000),
+  proteinG: z.number().min(0).max(1000),
+  carbsG: z.number().min(0).max(1000),
+  fatG: z.number().min(0).max(1000),
+});
+
+const stepSchema = z.object({
+  text: z.string().trim().min(1).max(500),
+  minutes: z.number().int().min(0).max(600).nullable().optional(),
+});
+
 export const recipeBodySchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(120),
   mealType: mealTypeSchema.nullable().optional(),
+  groupName: z.string().trim().max(80).nullable().optional(),
+  description: z.string().trim().max(500).nullable().optional(),
+  servings: z.number().int().min(1).max(50).optional(),
+  prepMinutes: z.number().int().min(0).max(600).nullable().optional(),
+  steps: z.array(stepSchema).max(40).optional(),
+  storage: z.string().trim().max(300).nullable().optional(),
+  fridgeDays: z.number().int().min(0).max(30).nullable().optional(),
+  tips: z.array(z.string().trim().min(1).max(300)).max(20).optional(),
+  /** Macros por porción declarados (recetas importadas); sustituyen la suma de ingredientes. */
+  macros: declaredMacrosSchema.nullable().optional(),
   items: z.array(ingredientSchema).min(1, "Añade al menos un ingrediente").max(60),
 });
 
@@ -102,6 +128,30 @@ export async function resolveIngredient(input: IngredientInput) {
     carbsG: macros.carbsG,
     fatG: macros.fatG,
     isEstimated: input.estimated ?? (!backed || isIncomplete(per100g)),
+    quantity: input.quantity ?? null,
+    unit: input.unit ?? null,
+    costCop: input.costCop ?? null,
+    store: input.store ?? null,
+  };
+}
+
+/** Campos de la receta (sin ingredientes) listos para `data` de Prisma. */
+export function recipeData(body: z.infer<typeof recipeBodySchema>) {
+  return {
+    name: body.name,
+    mealType: body.mealType ?? null,
+    groupName: body.groupName || null,
+    description: body.description || null,
+    servings: body.servings ?? 1,
+    prepMinutes: body.prepMinutes ?? null,
+    steps: body.steps ?? [],
+    storage: body.storage || null,
+    fridgeDays: body.fridgeDays ?? null,
+    tips: body.tips ?? [],
+    kcal: body.macros?.kcal ?? null,
+    proteinG: body.macros?.proteinG ?? null,
+    carbsG: body.macros?.carbsG ?? null,
+    fatG: body.macros?.fatG ?? null,
   };
 }
 
@@ -119,7 +169,24 @@ type RecipeRow = {
     carbsG: unknown;
     fatG: unknown;
     isEstimated: boolean;
+    quantity?: unknown;
+    unit?: string | null;
+    costCop?: number | null;
+    store?: string | null;
   }>;
+  groupName?: string | null;
+  description?: string | null;
+  servings?: number;
+  prepMinutes?: number | null;
+  steps?: unknown;
+  storage?: string | null;
+  fridgeDays?: number | null;
+  tips?: string[];
+  costCop?: number | null;
+  kcal?: unknown;
+  proteinG?: unknown;
+  carbsG?: unknown;
+  fatG?: unknown;
 };
 
 /** Receta lista para el cliente, con los totales de todos sus ingredientes. */
@@ -134,12 +201,35 @@ export function toRecipePayload(recipe: RecipeRow) {
     carbsG: num(i.carbsG),
     fatG: num(i.fatG),
     isEstimated: i.isEstimated,
+    quantity: numOrNull(i.quantity),
+    unit: i.unit ?? null,
+    costCop: i.costCop ?? null,
+    store: i.store ?? null,
   }));
+  const declared = recipe.kcal != null;
+  const itemCost = items.reduce((t, i) => t + (i.costCop ?? 0), 0);
   return {
     id: recipe.id,
     name: recipe.name,
     mealType: recipe.mealType,
+    groupName: recipe.groupName ?? null,
+    description: recipe.description ?? null,
+    servings: recipe.servings ?? 1,
+    prepMinutes: recipe.prepMinutes ?? null,
+    steps: Array.isArray(recipe.steps) ? recipe.steps : [],
+    storage: recipe.storage ?? null,
+    fridgeDays: recipe.fridgeDays ?? null,
+    tips: recipe.tips ?? [],
+    costCop: recipe.costCop ?? (itemCost > 0 ? itemCost : null),
+    macrosDeclared: declared,
     items,
-    totals: sumMacros(items),
+    totals: declared
+      ? {
+          kcal: num(recipe.kcal),
+          proteinG: num(recipe.proteinG),
+          carbsG: num(recipe.carbsG),
+          fatG: num(recipe.fatG),
+        }
+      : sumMacros(items),
   };
 }

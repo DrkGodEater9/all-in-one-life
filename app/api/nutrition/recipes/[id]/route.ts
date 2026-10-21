@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import { ok, badRequest, notFound } from "@/lib/http";
 import { prisma } from "@/lib/db";
-import { recipeBodySchema, resolveIngredient, toRecipePayload } from "../_lib";
+import { recipeBodySchema, recipeData, resolveIngredient, toRecipePayload } from "../_lib";
 
 function parseId(raw: string) {
   const id = Number(raw);
@@ -24,8 +24,7 @@ export const PUT = withAuth<{ id: string }>(async ({ req, params }) => {
     return tx.nutritionRecipe.update({
       where: { id },
       data: {
-        name: body.name,
-        mealType: body.mealType ?? null,
+        ...recipeData(body),
         items: { create: items },
       },
       include: { items: { orderBy: { id: "asc" } } },
