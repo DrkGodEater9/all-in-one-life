@@ -62,7 +62,7 @@ export function RecipeDetailDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>{recipe.name}</DialogTitle>
+          <DialogTitle className="text-balance">{recipe.name}</DialogTitle>
           <DialogDescription>
             {[
               recipe.groupName,
@@ -105,17 +105,21 @@ export function RecipeDetailDialog({
 
           {recipe.steps.length > 0 ? (
             <section className="space-y-1">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-3">Preparación</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-3">
+                Paso a paso{recipe.prepMinutes != null ? ` · ${recipe.prepMinutes} min` : ""}
+              </h3>
               <ol className="space-y-2">
                 {recipe.steps.map((step, i) => (
-                  <li key={i} className="flex gap-2.5 text-sm text-text-2">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-[11px] text-text">
+                  <li key={i} className="flex gap-3 text-sm leading-relaxed text-text-2">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-xs text-text">
                       {i + 1}
                     </span>
-                    <span className="min-w-0 flex-1">{step.text}</span>
-                    {step.minutes ? (
-                      <span className="shrink-0 font-mono text-xs text-text-3">{step.minutes} min</span>
-                    ) : null}
+                    <span className="min-w-0 flex-1">
+                      {step.text}
+                      {step.minutes ? (
+                        <span className="ml-1.5 whitespace-nowrap font-mono text-xs text-text-3">· {step.minutes} min</span>
+                      ) : null}
+                    </span>
                   </li>
                 ))}
               </ol>
@@ -141,18 +145,25 @@ export function RecipeDetailDialog({
           ) : null}
         </DialogBody>
 
-        <DialogFooter className="flex-wrap gap-2">
-          <Button variant="ghost" size="icon" aria-label={`Eliminar ${recipe.name}`} onClick={onDelete}>
-            <Trash2 />
-          </Button>
-          <Button variant="ghost" size="icon" aria-label={`Editar ${recipe.name}`} onClick={onEdit}>
-            <Pencil />
-          </Button>
-          <Button variant={inPlan ? "default" : "secondary"} onClick={onTogglePlan}>
-            <ShoppingBasket />
-            {inPlan ? "En compras" : "A compras"}
-          </Button>
-          <Button onClick={onLog}>
+        {/* Móvil: "Hoy comí esto" arriba a lo ancho y las acciones debajo; escritorio: en una fila. */}
+        <DialogFooter className="sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" aria-label={`Eliminar ${recipe.name}`} onClick={onDelete}>
+              <Trash2 />
+            </Button>
+            <Button variant="ghost" size="icon" aria-label={`Editar ${recipe.name}`} onClick={onEdit}>
+              <Pencil />
+            </Button>
+            <Button
+              variant={inPlan ? "default" : "secondary"}
+              className="flex-1 sm:flex-none"
+              onClick={onTogglePlan}
+            >
+              <ShoppingBasket />
+              {inPlan ? "En compras" : "A compras"}
+            </Button>
+          </div>
+          <Button className="w-full sm:w-auto" onClick={onLog}>
             <Check />
             Hoy comí esto
           </Button>

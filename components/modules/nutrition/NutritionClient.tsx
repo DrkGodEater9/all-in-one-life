@@ -153,7 +153,7 @@ export function NutritionClient() {
       />
 
       <Tabs defaultValue="recipes">
-        <TabsList>
+        <TabsList className="max-w-full overflow-x-auto">
           <TabsTrigger value="recipes">Recetas</TabsTrigger>
           <TabsTrigger value="shopping">
             Compras{plan.length > 0 ? ` (${plan.length})` : ""}
