@@ -512,3 +512,19 @@ model Concept {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+/// Lista de productos del recetario (qué comprar y a qué precio).
+model NutritionProduct {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String?
+  quantity    Decimal? @db.Decimal(8, 2)
+  unit        String?
+  priceCop    Int
+  store       String   // 'D1' | 'Tienda de barrio'
+  priceType   String?  // 'publicado' | 'estimado'
+  note        String?
+  url         String?
+  recipeCodes String[] @default([])
+  createdAt   DateTime @default(now())
+}

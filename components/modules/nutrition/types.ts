@@ -159,3 +159,17 @@ export const MACRO_BAR = {
   carbs: { label: "Carbos", bar: "bg-yellow", text: "text-yellow" },
   fat: { label: "Grasa", bar: "bg-accent", text: "text-accent" },
 } as const;
+
+export type Product = {
+  id: number;
+  name: string;
+  category: string | null;
+  quantity: number | null;
+  unit: string | null;
+  priceCop: number;
+  store: string;
+  priceType: string | null;
+  note: string | null;
+  url: string | null;
+  recipeCodes: string[];
+};

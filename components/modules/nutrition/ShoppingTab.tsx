@@ -4,6 +4,7 @@ import * as React from "react";
 import { Minus, Plus, ShoppingBasket, X } from "lucide-react";
 import { Button, Card, Checkbox, EmptyState, SectionHeader, Skeleton } from "@/components/ui";
 import { formatNumber } from "@/lib/utils";
+import { ProductList } from "./ProductList";
 import { formatCop } from "./RecipeDetailDialog";
 import type { Recipe } from "./types";
 
@@ -71,16 +72,21 @@ export function ShoppingTab({
 
   if (planned.length === 0) {
     return (
-      <EmptyState
-        icon={ShoppingBasket}
-        title="Tu lista de compras está vacía"
-        description='Abre una receta y pulsa "A compras"; aquí se suman los ingredientes de todas.'
-      />
+      <div className="space-y-6">
+        <ProductList />
+        <EmptyState
+          icon={ShoppingBasket}
+          title="Arma tu propia compra"
+          description='Abre una receta y pulsa "A compras"; aquí se suman los ingredientes de las que elijas.'
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <ProductList />
+      <h2 className="pt-2 text-base font-semibold text-text">Según tus recetas elegidas</h2>
       <Card className="p-4">
         <SectionHeader title="Recetas de la compra" description="Cuántas porciones comerás de cada una." />
         <ul className="mt-3 divide-y divide-border">
