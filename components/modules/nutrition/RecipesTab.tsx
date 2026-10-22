@@ -188,7 +188,13 @@ export function RecipesTab({
     const order = [...MEAL_TYPES, "none"] as string[];
     return [...byMeal.entries()]
       .sort(([a], [b]) => order.indexOf(a) - order.indexOf(b))
-      .map(([meal, groups]) => ({ meal, groups: [...groups.entries()] }));
+      .map(([meal, groups]) => ({
+        meal,
+        // Los grupos del recetario primero (en su orden); las recetas sueltas al final.
+        groups: [...groups.entries()].sort(
+          ([a], [b]) => Number(a === NO_GROUP) - Number(b === NO_GROUP)
+        ),
+      }));
   }, [recipes, filter, query]);
 
   async function remove(recipe: Recipe) {
