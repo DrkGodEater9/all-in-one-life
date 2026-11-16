@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { prisma, type Tx } from "@/lib/db";
 import { notFound } from "@/lib/http";
 
 export { parseId, emptyToNull, queryObject, urlSchema } from "../projects/_lib";
@@ -43,7 +43,7 @@ export function blogWhere(filters: z.infer<typeof blogFiltersSchema>): Prisma.Bl
   return where;
 }
 
-export async function assertPostExists(db: Prisma.TransactionClient, id: number) {
+export async function assertPostExists(db: Tx, id: number) {
   const post = await db.blogPost.findUnique({ where: { id }, select: { id: true } });
   if (!post) throw notFound("Entrada no encontrada");
 }

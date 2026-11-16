@@ -25,11 +25,13 @@ describe("POST /api/telegram/webhook", () => {
   beforeEach(() => {
     process.env.TELEGRAM_WEBHOOK_SECRET = "sec";
     process.env.TELEGRAM_CHAT_ID = "42";
+    process.env.TELEGRAM_USER_ID = "user-1";
     sendMessage.mockReset();
   });
   afterEach(() => {
     delete process.env.TELEGRAM_WEBHOOK_SECRET;
     delete process.env.TELEGRAM_CHAT_ID;
+    delete process.env.TELEGRAM_USER_ID;
   });
 
   it("401 con secreto incorrecto", async () => {

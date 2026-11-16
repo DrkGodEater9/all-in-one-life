@@ -21,11 +21,11 @@ export const GET = withAuth(async () => {
   return ok(payload);
 });
 
-/** POST /api/tasks/labels — `name` es @unique, así que el duplicado es un 400. */
+/** POST /api/tasks/labels — `name` es único por usuario, así que el duplicado es un 400. */
 export const POST = withAuth(async ({ req }) => {
   const body = createLabelSchema.parse(await req.json());
 
-  const existing = await prisma.taskLabel.findUnique({ where: { name: body.name } });
+  const existing = await prisma.taskLabel.findFirst({ where: { name: body.name } });
   if (existing) throw badRequest("Ya existe una etiqueta con ese nombre");
 
   const label = await prisma.taskLabel.create({

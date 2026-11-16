@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { toErrorResponse, unauthorized } from "@/lib/http";
+import { runAsUser } from "@/lib/user-context";
 
 /** Usuario autenticado o null. Para Server Components. */
 export async function getUser(): Promise<User | null> {
@@ -40,12 +41,15 @@ export function withAuth<P extends Record<string, string | string[]> = Record<st
     try {
       const user = await requireUser();
       const searchParams = new URL(req.url).searchParams;
-      return await handler({
-        req,
-        user,
-        params: (segment?.params ?? {}) as P,
-        searchParams,
-      });
+      // Todo lo que el handler haga con `prisma` queda limitado a este usuario.
+      return await runAsUser(user.id, () =>
+        handler({
+          req,
+          user,
+          params: (segment?.params ?? {}) as P,
+          searchParams,
+        })
+      );
     } catch (error) {
       return toErrorResponse(error);
     }

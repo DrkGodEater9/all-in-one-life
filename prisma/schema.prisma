@@ -15,6 +15,8 @@ datasource db {
 // ─────────────────────────────────────────
 
 model RecurrenceRule {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id           Int       @id @default(autoincrement())
   frequency    String    // 'daily' | 'weekly' | 'monthly'
   intervalN    Int       @default(1)
@@ -24,6 +26,8 @@ model RecurrenceRule {
 
   events       CalendarEvent[]
   tasks        Task[]
+
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────
@@ -31,6 +35,8 @@ model RecurrenceRule {
 // ─────────────────────────────────────────
 
 model FinanceSource {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id           Int       @id @default(autoincrement())
   name         String    // 'daily' | 'savings'
   balance      Decimal   @default(0) @db.Decimal(12, 2)
@@ -38,6 +44,8 @@ model FinanceSource {
 
   transactions FinanceTransaction[]
   debts        FinanceDebt[]
+
+  @@index([userId])
 }
 
 model FinanceTransaction {
@@ -80,6 +88,8 @@ model FinanceDebtPayment {
 }
 
 model FinanceAsset {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id         Int      @id @default(autoincrement())
   title      String
   quantity   Decimal  @db.Decimal(12, 4)
@@ -87,6 +97,8 @@ model FinanceAsset {
   priceEach  Decimal? @db.Decimal(12, 2)
   notes      String?
   createdAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Líneas de crédito (ej. tarjetas/créditos de libre inversión) — distinto de
@@ -94,6 +106,8 @@ model FinanceAsset {
 // entidad del que retiras y al que abonas. `creditLimit` es opcional porque
 // no toda línea de crédito tiene un tope fijo conocido.
 model FinanceCreditLine {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id          Int      @id @default(autoincrement())
   name        String
   creditLimit Decimal? @db.Decimal(12, 2)
@@ -103,6 +117,8 @@ model FinanceCreditLine {
   createdAt   DateTime @default(now())
 
   movements   FinanceCreditMovement[]
+
+  @@index([userId])
 }
 
 model FinanceCreditMovement {
@@ -122,6 +138,8 @@ model FinanceCreditMovement {
 // ─────────────────────────────────────────
 
 model Streak {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   name      String
   color     String   @default("#8b5cf6")
@@ -129,6 +147,8 @@ model Streak {
   createdAt DateTime @default(now())
 
   checkins  StreakCheckin[]
+
+  @@index([userId])
 }
 
 model StreakCheckin {
@@ -159,6 +179,8 @@ model NutritionFoodCache {
 }
 
 model NutritionFavorite {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id           Int      @id @default(autoincrement())
   name         String
   kcal100g     Decimal  @db.Decimal(8, 2)
@@ -170,15 +192,21 @@ model NutritionFavorite {
   createdAt    DateTime @default(now())
 
   mealItems    NutritionMealItem[]
+
+  @@index([userId])
 }
 
 model NutritionMealLog {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   date      DateTime @db.Date
   mealType  String   // 'breakfast' | 'lunch' | 'dinner' | 'snack'
   createdAt DateTime @default(now())
 
   items     NutritionMealItem[]
+
+  @@index([userId])
 }
 
 model NutritionMealItem {
@@ -204,6 +232,8 @@ model NutritionMealItem {
 /// Receta guardada: lista de ingredientes con gramos y macros ya escalados.
 /// Los items no referencian favoritos/caché: son una foto de los macros al guardar.
 model NutritionRecipe {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   name      String
   mealType  String?  // sugerencia: 'breakfast' | 'lunch' | 'dinner' | 'snack'
@@ -226,6 +256,8 @@ model NutritionRecipe {
   fatG        Decimal? @db.Decimal(8, 2)
 
   items     NutritionRecipeItem[]
+
+  @@index([userId])
 }
 
 model NutritionRecipeItem {
@@ -250,27 +282,39 @@ model NutritionRecipeItem {
 }
 
 model NutritionGoal {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   kcal      Int
   proteinG  Int
   carbsG    Int
   fatG      Int
   updatedAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model NutritionWeightLog {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   weightKg  Decimal  @db.Decimal(5, 2)
   date      DateTime @db.Date
   notes     String?
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model NutritionWaterLog {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   date      DateTime @db.Date
   amountMl  Int      @default(250)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────
@@ -278,12 +322,16 @@ model NutritionWaterLog {
 // ─────────────────────────────────────────
 
 model GymRoutine {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
 
   exercises GymRoutineExercise[]
   workouts  GymWorkout[]
+
+  @@index([userId])
 }
 
 model GymRoutineExercise {
@@ -326,6 +374,8 @@ model GymWorkoutSet {
 }
 
 model GymMeasurement {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   date      DateTime @db.Date
   chestCm   Decimal? @db.Decimal(5, 2)
@@ -335,6 +385,8 @@ model GymMeasurement {
   thighsCm  Decimal? @db.Decimal(5, 2)
   notes     String?
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────
@@ -342,6 +394,8 @@ model GymMeasurement {
 // ─────────────────────────────────────────
 
 model CalendarEvent {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id             Int       @id @default(autoincrement())
   title          String
   date           DateTime  @db.Date
@@ -357,6 +411,8 @@ model CalendarEvent {
 
   recurrence     RecurrenceRule? @relation(fields: [recurrenceId], references: [id])
   reminders      CalendarReminder[]
+
+  @@index([userId])
 }
 
 model CalendarReminder {
@@ -376,15 +432,22 @@ model CalendarReminder {
 // ─────────────────────────────────────────
 
 model TaskLabel {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
-  name      String   @unique
+  name      String
   color     String?
   createdAt DateTime @default(now())
 
   tasks     TaskLabelAssignment[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Task {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id              Int       @id @default(autoincrement())
   title           String
   description     String?
@@ -400,6 +463,8 @@ model Task {
 
   recurrence      RecurrenceRule? @relation(fields: [recurrenceId], references: [id])
   labels          TaskLabelAssignment[]
+
+  @@index([userId])
 }
 
 model TaskLabelAssignment {
@@ -417,14 +482,21 @@ model TaskLabelAssignment {
 // ─────────────────────────────────────────
 
 model ProjectCategory {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int       @id @default(autoincrement())
-  name      String    @unique
+  name      String
   createdAt DateTime  @default(now())
 
   projects  Project[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Project {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id          Int       @id @default(autoincrement())
   title       String
   description String?
@@ -440,14 +512,21 @@ model Project {
   tags        ProjectTagAssignment[]
   notes       ProjectNote[]
   links       ProjectLink[]
+
+  @@index([userId])
 }
 
 model ProjectTag {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
-  name      String   @unique
+  name      String
   createdAt DateTime @default(now())
 
   projects  ProjectTagAssignment[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model ProjectTagAssignment {
@@ -481,6 +560,8 @@ model ProjectLink {
 
 // ── Blog (notas del grupo de investigación, etc.) ─────────────────────────
 model BlogPost {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id        Int      @id @default(autoincrement())
   title     String
   content   String
@@ -490,6 +571,8 @@ model BlogPost {
   updatedAt DateTime @updatedAt
 
   links     BlogLink[]
+
+  @@index([userId])
 }
 
 /// "Docs" de una entrada: enlaces a documentos (Drive, Notion, PDFs, etc.)
@@ -505,16 +588,22 @@ model BlogLink {
 
 // ── Conceptos (glosario personal) ─────────────────────────────────────────
 model Concept {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id         Int      @id @default(autoincrement())
   term       String
   definition String
   topic      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 /// Lista de productos del recetario (qué comprar y a qué precio).
 model NutritionProduct {
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
   id          Int      @id @default(autoincrement())
   name        String
   category    String?
@@ -527,4 +616,6 @@ model NutritionProduct {
   url         String?
   recipeCodes String[] @default([])
   createdAt   DateTime @default(now())
+
+  @@index([userId])
 }

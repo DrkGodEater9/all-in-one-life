@@ -3,10 +3,17 @@
  * Los ingredientes se guardan como favoritos (macros por 100 g) y las recetas
  * se calculan desde los gramos. Idempotente por nombre: lo que ya existe se omite.
  *
- *   npx tsx scripts/import-recetario.ts <archivo.json> [--dry]
+ *   SEED_USER_ID=<uuid> npx tsx scripts/import-recetario.ts <archivo.json> [--dry]
  */
 import { readFileSync } from "node:fs";
-import { PrismaClient } from "@prisma/client";
+import { prisma, runAsUser } from "../lib/db";
+
+// Multiusuario: se carga para el usuario de SEED_USER_ID (id en Supabase > Authentication).
+const SEED_USER_ID = process.env.SEED_USER_ID;
+if (!SEED_USER_ID) {
+  console.error("Falta SEED_USER_ID");
+  process.exit(1);
+}
 
 type Ingredient = {
   name: string;
@@ -99,8 +106,6 @@ async function main() {
     console.error("\nHay errores estructurales; no se inserta nada.");
     process.exit(1);
   }
-
-  const prisma = new PrismaClient();
   try {
     const goal = await prisma.nutritionGoal.findFirst({ orderBy: { id: "asc" } });
     if (goal) await prisma.nutritionGoal.update({ where: { id: goal.id }, data: { ...data.goals, updatedAt: new Date() } });
@@ -163,7 +168,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+runAsUser(SEED_USER_ID, main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

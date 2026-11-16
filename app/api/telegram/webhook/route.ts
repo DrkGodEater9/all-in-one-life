@@ -7,6 +7,7 @@ import {
   sendChatAction,
   sendMessage,
 } from "@/lib/telegram/client";
+import { runAsUser } from "@/lib/user-context";
 import type { TelegramUpdate } from "@/lib/telegram/types";
 
 export const maxDuration = 60;
@@ -34,7 +35,11 @@ export const POST = withRoute(async ({ req }) => {
   const chatId = message.chat.id;
   try {
     await sendChatAction(chatId).catch(() => undefined);
-    await sendMessage(chatId, await runAgent(message.text));
+    // El bot es de un solo usuario: sus herramientas ven solo los datos de TELEGRAM_USER_ID.
+    const ownerId = process.env.TELEGRAM_USER_ID;
+    if (!ownerId) throw new Error("TELEGRAM_USER_ID no está configurado");
+    const text = message.text;
+    await sendMessage(chatId, await runAsUser(ownerId, () => runAgent(text)));
   } catch (error) {
     console.error("[telegram] error procesando update:", error);
     await sendMessage(chatId, "Ocurrió un error procesando tu mensaje.").catch(() => undefined);

@@ -1,13 +1,19 @@
 /**
  * Carga los pasos de preparación (y el tiempo total) en las recetas existentes, por nombre.
  *
- *   npx tsx scripts/cargar-pasos.ts
+ *   SEED_USER_ID=<uuid> npx tsx scripts/cargar-pasos.ts
  */
-import { PrismaClient } from "@prisma/client";
+import { prisma, runAsUser } from "../lib/db";
+
+// Multiusuario: se carga para el usuario de SEED_USER_ID (id en Supabase > Authentication).
+const SEED_USER_ID = process.env.SEED_USER_ID;
+if (!SEED_USER_ID) {
+  console.error("Falta SEED_USER_ID");
+  process.exit(1);
+}
 import { PASOS } from "./data/pasos-recetas";
 
 async function main() {
-  const prisma = new PrismaClient();
   try {
     const recipes = await prisma.nutritionRecipe.findMany({ select: { id: true, name: true } });
     const names = new Set(recipes.map((r) => r.name));
@@ -35,7 +41,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+runAsUser(SEED_USER_ID, main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

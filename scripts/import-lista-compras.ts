@@ -2,10 +2,17 @@
  * Importa la lista de productos con precios (D1 y tienda de barrio).
  * Idempotente por nombre + tienda: si ya existe, actualiza precio y datos.
  *
- *   npx tsx scripts/import-lista-compras.ts scripts/data/lista-compras.json
+ *   SEED_USER_ID=<uuid> npx tsx scripts/import-lista-compras.ts scripts/data/lista-compras.json
  */
 import { readFileSync } from "node:fs";
-import { PrismaClient } from "@prisma/client";
+import { prisma, runAsUser } from "../lib/db";
+
+// Multiusuario: se carga para el usuario de SEED_USER_ID (id en Supabase > Authentication).
+const SEED_USER_ID = process.env.SEED_USER_ID;
+if (!SEED_USER_ID) {
+  console.error("Falta SEED_USER_ID");
+  process.exit(1);
+}
 
 type Row = [
   name: string,
@@ -29,7 +36,6 @@ const rows = (JSON.parse(readFileSync(file, "utf8")) as { lista_de_compras: { it
   .lista_de_compras.items;
 
 async function main() {
-  const prisma = new PrismaClient();
   try {
     let created = 0;
     for (const [name, category, quantity, unit, priceCop, store, priceType, note, url, recipeCodes] of rows) {
@@ -47,7 +53,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+runAsUser(SEED_USER_ID, main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

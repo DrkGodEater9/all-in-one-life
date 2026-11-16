@@ -5,7 +5,8 @@
  */
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { prisma, type Tx } from "@/lib/db";
+import { requireUserId } from "@/lib/user-context";
 import { badRequest, notFound } from "@/lib/http";
 import { formatTime, parseDateKey } from "@/lib/utils";
 import {
@@ -156,7 +157,7 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
 }>;
 
 /** Cliente de Prisma o cliente de transacción: ambos sirven a los helpers. */
-type Db = Prisma.TransactionClient | typeof prisma;
+type Db = Tx | typeof prisma;
 
 export const taskOrderBy: Prisma.TaskOrderByWithRelationInput[] = [
   { date: { sort: "asc", nulls: "last" } },
@@ -292,7 +293,7 @@ export async function resolveLabelIds(
     const name = raw.trim();
     if (!name) continue;
     const label = await client.taskLabel.upsert({
-      where: { name },
+      where: { userId_name: { userId: requireUserId(), name } },
       update: {},
       create: { name },
     });
@@ -375,7 +376,7 @@ function todayUTC(): Date {
  * de modo que nunca queda una serie a medias.
  */
 export async function spawnNextOccurrence(
-  tx: Prisma.TransactionClient,
+  tx: Tx,
   task: TaskWithRelations
 ): Promise<void> {
   const rule = task.recurrence;
@@ -445,7 +446,7 @@ export async function applyStatusChange(
  * (`deleteRuleIfOrphan`).
  */
 export async function applyRecurrence(
-  tx: Prisma.TransactionClient,
+  tx: Tx,
   currentRecurrenceId: number | null,
   input: RecurrenceInput | null
 ): Promise<number | null> {
@@ -475,7 +476,7 @@ export async function applyRecurrence(
  * la tarea que se está borrando/desvinculando en la misma transacción.
  */
 export async function deleteRuleIfOrphan(
-  tx: Prisma.TransactionClient,
+  tx: Tx,
   ruleId: number,
   exceptTaskId: number | null
 ): Promise<void> {

@@ -1,6 +1,6 @@
 import { assertCronSecret, withRoute } from "@/lib/auth";
 import { ok } from "@/lib/http";
-import { prisma } from "@/lib/db";
+import { prismaAdmin as prisma } from "@/lib/db";
 import { formatTime } from "@/lib/utils";
 import { isTelegramConfigured, sendMessage } from "@/lib/telegram/client";
 import { addUtcDays, reminderTriggerAt, toDateKeyUTC } from "../../calendar/_lib";
@@ -20,9 +20,14 @@ export interface ReminderNotification {
  * está configurado no hace nada y el recordatorio solo se marca como enviado,
  * igual que en fase 1. Para otro canal, sustituir el cuerpo de esta función.
  */
-async function dispatchNotification(notification: ReminderNotification): Promise<void> {
+async function dispatchNotification(
+  notification: ReminderNotification,
+  ownerId: string
+): Promise<void> {
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!isTelegramConfigured() || !chatId) return;
+  // El bot es de un solo usuario (TELEGRAM_USER_ID): los recordatorios de los
+  // demás usuarios solo se marcan como enviados, no se mandan a ese chat.
+  if (!isTelegramConfigured() || !chatId || ownerId !== process.env.TELEGRAM_USER_ID) return;
   await sendMessage(chatId, notification.message);
 }
 
@@ -85,7 +90,10 @@ export const GET = withRoute(async ({ req }) => {
     (r) => reminderTriggerAt(r.event.date, r.remindTime, r.daysBefore).getTime() <= now.getTime()
   );
 
-  const notifications: ReminderNotification[] = due.map((r) => ({
+  // Este cron corre sin sesión y recorre a todos los usuarios: usa el cliente
+  // sin filtro (prismaAdmin) a propósito.
+  const notifications: (ReminderNotification & { userId: string })[] = due.map((r) => ({
+    userId: r.event.userId,
     reminderId: r.id,
     eventId: r.eventId,
     triggerAt: reminderTriggerAt(r.event.date, r.remindTime, r.daysBefore).toISOString(),
@@ -93,7 +101,7 @@ export const GET = withRoute(async ({ req }) => {
   }));
 
   for (const notification of notifications) {
-    await dispatchNotification(notification);
+    await dispatchNotification(notification, notification.userId);
   }
 
   if (due.length > 0) {
@@ -107,6 +115,6 @@ export const GET = withRoute(async ({ req }) => {
     checked: pending.length,
     processed: due.length,
     ranAt: now.toISOString(),
-    notifications,
+    notifications: notifications.map(({ userId: _userId, ...n }) => n),
   });
 });

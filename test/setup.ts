@@ -13,6 +13,7 @@ import { createSupabaseMock, resetTestUser } from "./mocks/session";
  */
 vi.mock("@/lib/db", () => ({
   prisma: prismaMock,
+  prismaAdmin: prismaMock,
   default: prismaMock,
 }));
 

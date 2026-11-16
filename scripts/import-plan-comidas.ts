@@ -3,10 +3,17 @@
  * costos y macros por porción) al tablero de recetas. Idempotente por nombre:
  * las recetas que ya existen se omiten.
  *
- *   npx tsx scripts/import-plan-comidas.ts <archivo.json> [--dry]
+ *   SEED_USER_ID=<uuid> npx tsx scripts/import-plan-comidas.ts <archivo.json> [--dry]
  */
 import { readFileSync } from "node:fs";
-import { PrismaClient } from "@prisma/client";
+import { prisma, runAsUser } from "../lib/db";
+
+// Multiusuario: se carga para el usuario de SEED_USER_ID (id en Supabase > Authentication).
+const SEED_USER_ID = process.env.SEED_USER_ID;
+if (!SEED_USER_ID) {
+  console.error("Falta SEED_USER_ID");
+  process.exit(1);
+}
 
 type Ingredient = {
   ingrediente: string;
@@ -90,8 +97,6 @@ async function main() {
   console.log(errors.length ? `\nERRORES:\n- ${errors.join("\n- ")}` : "Sin errores de validación");
   if (dry) return;
   if (errors.length) process.exit(1);
-
-  const prisma = new PrismaClient();
   try {
     const g = data.metas_diarias;
     if (g) {
@@ -155,7 +160,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+runAsUser(SEED_USER_ID, main).catch((e) => {
   console.error(e);
   process.exit(1);
 });

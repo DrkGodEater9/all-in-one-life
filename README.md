@@ -31,7 +31,7 @@ Next.js 14 (App Router) · TypeScript · Prisma · Supabase (Postgres + Auth) ·
 
    ```bash
    npm run db:push     # crea las tablas a partir de prisma/schema.prisma
-   npm run db:seed     # fuentes daily/savings, metas por defecto, categorías
+   SEED_USER_ID=<uid> npm run db:seed   # fuentes daily/savings, metas, categorías (de ese usuario)
    ```
 
 3. **Usuario** — no hay registro público. Créalo a mano en Supabase → Authentication → Users → *Add user* (con email y contraseña, confirmado).
@@ -52,7 +52,7 @@ Next.js 14 (App Router) · TypeScript · Prisma · Supabase (Postgres + Auth) ·
 | `npm run lint` | ESLint |
 | `npm run db:push` | Sincroniza el schema con la base sin migración |
 | `npm run db:migrate` | Crea y aplica una migración |
-| `npm run db:seed` | Datos base idempotentes |
+| `npm run db:seed` | Datos base idempotentes, para el usuario de `SEED_USER_ID` |
 | `npm run db:studio` | Prisma Studio |
 
 ## Deploy en Vercel
@@ -77,3 +77,7 @@ prisma/          schema.prisma y seed.ts
 ## Fase 2
 
 Agente de IA conectado a un bot de Telegram, encima de los mismos datos. Estructura ya montada, falta el proveedor de LLM. Detalle en [`docs/AGENT.md`](docs/AGENT.md).
+
+## Multiusuario
+
+Cada usuario de Supabase (Authentication > Users) ve solo sus datos. Cada fila tiene un dueño (`userId`) y `lib/db.ts` filtra **todas** las consultas por el usuario de la sesión; las rutas no tienen que filtrar a mano. Un usuario nuevo entra con todo vacío (las fuentes de dinero se crean solas). Para migrar datos previos a un usuario: `SEED_USER_ID=<uid> npx tsx --env-file=.env scripts/backfill-user.ts`.

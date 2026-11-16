@@ -23,6 +23,7 @@ Vercel Cron ──▶ /api/cron/reminders ──▶ sendMessage()  (avisos salie
 
 1. Crear el bot con @BotFather → `TELEGRAM_BOT_TOKEN`.
 2. Tu chat id (p. ej. con @userinfobot) → `TELEGRAM_CHAT_ID`. Solo ese chat es atendido.
+   Además `TELEGRAM_USER_ID` = id (UID) de tu usuario en Supabase: el agente ve solo sus datos y a él se le mandan los recordatorios.
 3. `TELEGRAM_WEBHOOK_SECRET`: string aleatorio.
 4. Cargar las tres variables en `.env.local` y en Vercel.
 5. Con la app desplegada: `npm run telegram:webhook` (necesita `NEXT_PUBLIC_APP_URL` https).

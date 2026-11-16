@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { prisma, type Tx } from "@/lib/db";
 import { badRequest, notFound } from "@/lib/http";
 
 /** Valores exactos del schema (español). */
@@ -44,7 +44,7 @@ export const projectInclude = {
   links: { orderBy: { createdAt: "asc" } },
 } satisfies Prisma.ProjectInclude;
 
-type Db = Prisma.TransactionClient;
+type Db = Tx;
 
 /** Convierte los searchParams en un objeto plano, ignorando valores vacíos. */
 export function queryObject(searchParams: URLSearchParams) {
