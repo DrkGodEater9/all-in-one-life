@@ -91,6 +91,13 @@ function scopeFor(model: string, userId: string): Where | null {
   return child ? child(userId) : null;
 }
 
+/** El dueño de una fila no se puede cambiar por update: se descarta `userId`. */
+function stripOwner(data: unknown): unknown {
+  if (!data || typeof data !== "object") return data;
+  const { userId: _ignored, ...rest } = data as Record<string, unknown>;
+  return rest;
+}
+
 function withScope(where: unknown, scope: Where): Where {
   const base = (where ?? {}) as Where;
   const and = base.AND;
@@ -145,6 +152,9 @@ export const prisma = prismaAdmin.$extends({
               : { ...data, userId };
           } else if (operation === "upsert") {
             a.create = { ...(a.create as object), userId };
+            a.update = stripOwner(a.update);
+          } else if (operation === "update" || operation === "updateMany") {
+            a.data = stripOwner(a.data);
           }
         }
 
