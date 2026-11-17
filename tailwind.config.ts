@@ -67,8 +67,8 @@ const config: Config = {
         // Instrument Serif se retiró del sistema visual a pedido del
         // usuario (se veía mal en cifras y tampoco convenció en títulos).
         // Todo el texto usa Inter; JetBrains Mono queda solo para números.
-        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-inter, Inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono, ui-monospace)", "ui-monospace", "monospace"],
       },
       borderRadius: {
         lg: "10px",
