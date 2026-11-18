@@ -27,6 +27,7 @@ import {
 } from "@/components/ui";
 import type { Goal } from "@/components/modules/nutrition/types";
 import { DEFAULT_WATER_GOAL_ML, usePreferences } from "./use-preferences";
+import { ClaudeSection } from "./ClaudeSection";
 
 /** Registro RHF que deja pasar solo dígitos (filtra en onChange). */
 function digitsOnly<T extends Record<string, unknown>>(form: UseFormReturn<T>, name: Path<T>) {
@@ -378,6 +379,7 @@ export function SettingsClient() {
       <NutritionGoalsSection />
       <PreferencesSection />
       <AppearanceSection />
+      <ClaudeSection />
     </div>
   );
 }

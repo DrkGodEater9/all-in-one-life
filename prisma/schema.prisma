@@ -656,3 +656,18 @@ model JobApplication {
 
   @@index([userId])
 }
+
+// ── Tokens personales (Claude Desktop / MCP) ──────────────────────────────
+/// Token para que un cliente externo (el servidor MCP) llame a la API como el
+/// usuario. Solo se guarda el hash SHA-256: el token en claro se muestra una vez.
+model ApiToken {
+  id         Int       @id @default(autoincrement())
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId     String    @default("")
+  name       String
+  tokenHash  String    @unique
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}

@@ -41,3 +41,6 @@ next-env.d.ts
 
 # Datos personales del plan de comidas (ya importado a la DB)
 plan_comidas_d1.json
+
+# Servidor MCP (dependencias propias)
+mcp-server/node_modules

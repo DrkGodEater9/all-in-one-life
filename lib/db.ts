@@ -60,6 +60,7 @@ const ROOT_MODELS = new Set([
   "Concept",
   "JobPortal",
   "JobApplication",
+  "ApiToken",
 ]);
 
 type Where = Record<string, unknown>;

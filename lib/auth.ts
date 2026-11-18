@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { toErrorResponse, unauthorized } from "@/lib/http";
 import { runAsUser } from "@/lib/user-context";
+import { prismaAdmin } from "@/lib/db";
 
 /** Usuario autenticado o null. Para Server Components. */
 export async function getUser(): Promise<User | null> {
@@ -21,6 +22,32 @@ export async function requireUser(): Promise<User> {
   return user;
 }
 
+/** Prefijo de los tokens personales; permite reconocerlos y filtrar ruido. */
+export const API_TOKEN_PREFIX = "pos_";
+
+export function hashApiToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Usuario dueño del token `Authorization: Bearer pos_…`, o null si no viene
+ * uno válido. Busca con `prismaAdmin` porque aún no hay usuario en contexto
+ * (justo eso es lo que se está resolviendo).
+ */
+async function userFromBearer(req: NextRequest): Promise<User | null> {
+  const match = /^Bearers+(pos_[A-Za-z0-9_-]{20,200})$/.exec(req.headers.get("authorization") ?? "");
+  if (!match) return null;
+  const row = await prismaAdmin.apiToken.findUnique({
+    where: { tokenHash: hashApiToken(match[1]) },
+    select: { id: true, userId: true },
+  });
+  if (!row?.userId) return null;
+  void prismaAdmin.apiToken
+    .update({ where: { id: row.id }, data: { lastUsedAt: new Date() } })
+    .catch(() => undefined);
+  return { id: row.userId } as User;
+}
+
 type RouteContext<P> = {
   req: NextRequest;
   user: User;
@@ -35,11 +62,13 @@ type RouteContext<P> = {
  *   export const GET = withAuth(async ({ searchParams }) => ok(await ...));
  */
 export function withAuth<P extends Record<string, string | string[]> = Record<string, string>>(
-  handler: (ctx: RouteContext<P>) => Promise<Response>
+  handler: (ctx: RouteContext<P>) => Promise<Response>,
+  /** `sessionOnly`: solo sesión de navegador, nunca token (gestión de tokens). */
+  options: { sessionOnly?: boolean } = {}
 ) {
   return async (req: NextRequest, segment?: { params: P }): Promise<Response> => {
     try {
-      const user = await requireUser();
+      const user = (!options.sessionOnly && (await userFromBearer(req))) || (await requireUser());
       const searchParams = new URL(req.url).searchParams;
       // Todo lo que el handler haga con `prisma` queda limitado a este usuario.
       return await runAsUser(user.id, () =>
