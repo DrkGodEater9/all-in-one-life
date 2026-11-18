@@ -35,7 +35,7 @@ export function hashApiToken(token: string): string {
  * (justo eso es lo que se está resolviendo).
  */
 async function userFromBearer(req: NextRequest): Promise<User | null> {
-  const match = /^Bearers+(pos_[A-Za-z0-9_-]{20,200})$/.exec(req.headers.get("authorization") ?? "");
+  const match = /^Bearer\s+(pos_[A-Za-z0-9_-]{20,200})$/.exec(req.headers.get("authorization") ?? "");
   if (!match) return null;
   const row = await prismaAdmin.apiToken.findUnique({
     where: { tokenHash: hashApiToken(match[1]) },
