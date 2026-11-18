@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CreditCard, Download } from "lucide-react";
+import { CreditCard, Download, Trash2 } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
 import { Card, EmptyState, Progress, Skeleton, Stat, toast } from "@/components/ui";
@@ -37,6 +37,27 @@ export function CreditLinesTab({ reloadKey, onChanged }: CreditLinesTabProps) {
   React.useEffect(() => {
     load();
   }, [load, reloadKey]);
+
+  async function deleteLine(line: CreditLine) {
+    if (
+      !window.confirm(
+        `¿Eliminar la línea de crédito "${line.name}"? Se borran también todos sus movimientos.`
+      )
+    )
+      return;
+    try {
+      await api.delete(`/finance/credit-lines/${line.id}`);
+      toast({ title: "Línea de crédito eliminada" });
+      load();
+      onChanged();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "No se pudo eliminar",
+        description: error instanceof ApiClientError ? error.message : "Inténtalo de nuevo",
+      });
+    }
+  }
 
   if (loading) {
     return (
@@ -90,14 +111,25 @@ export function CreditLinesTab({ reloadKey, onChanged }: CreditLinesTabProps) {
                 )}
               </button>
 
-              <a
-                href={`/api/finance/credit-lines/${line.id}/export`}
-                onClick={(e) => e.stopPropagation()}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Exportar Excel
-              </a>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <a
+                  href={`/api/finance/credit-lines/${line.id}/export`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-xs text-text-2 transition-colors hover:text-accent"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Exportar Excel
+                </a>
+                <button
+                  type="button"
+                  onClick={() => deleteLine(line)}
+                  aria-label={`Eliminar ${line.name}`}
+                  className="inline-flex items-center gap-1.5 text-xs text-text-3 transition-colors hover:text-red-400"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Eliminar
+                </button>
+              </div>
             </Card>
           );
         })}
