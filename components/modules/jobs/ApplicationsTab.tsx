@@ -1,11 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Briefcase, ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Plus } from "lucide-react";
 import { api, ApiClientError } from "@/lib/api";
-import { cn, toDateKey } from "@/lib/utils";
+import { toDateKey } from "@/lib/utils";
 import {
-  Badge,
   Button,
   Dialog,
   DialogBody,
@@ -25,12 +24,8 @@ import {
   Textarea,
   toast,
 } from "@/components/ui";
-import {
-  APPLICATION_STATUSES,
-  APPLICATION_STATUS_LABEL,
-  APPLICATION_STATUS_TONE,
-  type ApplicationStatus,
-} from "./constants";
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL, type ApplicationStatus } from "./constants";
+import { ApplicationsKanban } from "./ApplicationsKanban";
 import type { JobApplication, JobPortal } from "./types";
 
 interface FormValues {
@@ -59,16 +54,6 @@ function emptyForm(): FormValues {
 
 function errorMessage(e: unknown) {
   return e instanceof ApiClientError ? e.message : "Inténtalo de nuevo";
-}
-
-/** "2026-11-16" → "16 nov 2026" sin pasar por zonas horarias. */
-function formatDay(key: string) {
-  const [y, m, d] = key.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-CO", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function ApplicationDialog({
@@ -267,7 +252,6 @@ export function ApplicationsTab({ reloadKey }: { reloadKey: number }) {
   const [items, setItems] = React.useState<JobApplication[]>([]);
   const [portals, setPortals] = React.useState<JobPortal[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [filter, setFilter] = React.useState<ApplicationStatus | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<JobApplication | null>(null);
 
@@ -309,7 +293,6 @@ export function ApplicationsTab({ reloadKey }: { reloadKey: number }) {
   }, [items]);
 
   const inProcess = counts.postulado + counts.en_revision + counts.entrevista + counts.prueba;
-  const visible = filter ? items.filter((a) => a.status === filter) : items;
 
   async function changeStatus(app: JobApplication, status: ApplicationStatus) {
     const snapshot = items;
@@ -349,36 +332,7 @@ export function ApplicationsTab({ reloadKey }: { reloadKey: number }) {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
-          <button
-            type="button"
-            onClick={() => setFilter(null)}
-            className={cn(
-              "shrink-0 rounded-sm border px-2.5 py-1 text-xs transition-colors",
-              filter === null
-                ? "border-accent/50 bg-accent-soft text-accent"
-                : "border-border text-text-2 hover:text-text"
-            )}
-          >
-            Todas ({items.length})
-          </button>
-          {APPLICATION_STATUSES.filter((s) => counts[s] > 0).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setFilter(filter === s ? null : s)}
-              className={cn(
-                "shrink-0 rounded-sm border px-2.5 py-1 text-xs transition-colors",
-                filter === s
-                  ? "border-accent/50 bg-accent-soft text-accent"
-                  : "border-border text-text-2 hover:text-text"
-              )}
-            >
-              {APPLICATION_STATUS_LABEL[s]} ({counts[s]})
-            </button>
-          ))}
-        </div>
+      <div className="flex justify-end">
         <Button
           size="sm"
           onClick={() => {
@@ -392,93 +346,27 @@ export function ApplicationsTab({ reloadKey }: { reloadKey: number }) {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-56 w-full" />
+          <Skeleton className="h-56 w-full" />
+          <Skeleton className="h-56 w-full" />
         </div>
-      ) : visible.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title={filter ? "Ninguna postulación con ese estado" : "Aún no hay postulaciones"}
-          description={
-            filter
-              ? "Quita el filtro para ver todas."
-              : "Agrega cada trabajo al que apliques y ve cambiando su estado según avance."
-          }
+          title="Aún no hay postulaciones"
+          description="Agrega cada trabajo al que apliques y arrástralo entre columnas según avance."
         />
       ) : (
-        <ul className="space-y-3">
-          {visible.map((a) => (
-            <li key={a.id} className="min-w-0 rounded-lg border border-border bg-surface p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="break-words text-base leading-tight text-text">{a.company}</h3>
-                  <p className="mt-0.5 break-words text-sm text-text-2">{a.position}</p>
-                </div>
-                <div className="flex shrink-0 items-center">
-                  {a.url ? (
-                    <a
-                      href={a.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Abrir oferta de ${a.company}`}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-2 transition-colors hover:bg-surface-2 hover:text-accent"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  ) : null}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Editar ${a.company}`}
-                    onClick={() => {
-                      setEditing(a);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Eliminar ${a.company}`}
-                    onClick={() => void remove(a)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <Select
-                  value={a.status}
-                  onValueChange={(v) => void changeStatus(a, v as ApplicationStatus)}
-                >
-                  <SelectTrigger className="h-8 w-auto gap-2 text-xs" aria-label={`Estado de ${a.company}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {APPLICATION_STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {APPLICATION_STATUS_LABEL[s]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Badge variant={APPLICATION_STATUS_TONE[a.status]}>
-                  {APPLICATION_STATUS_LABEL[a.status]}
-                </Badge>
-                <span className="text-xs text-text-2">{formatDay(a.appliedAt)}</span>
-                {a.source ? <Badge variant="outline">{a.source}</Badge> : null}
-                {a.salary ? <span className="text-xs text-text-2">{a.salary}</span> : null}
-              </div>
-
-              {a.notes ? (
-                <p className="mt-3 whitespace-pre-wrap break-words text-sm text-text-2">{a.notes}</p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <ApplicationsKanban
+          apps={items}
+          onSetStatus={changeStatus}
+          onEdit={(app) => {
+            setEditing(app);
+            setDialogOpen(true);
+          }}
+          onDelete={(app) => void remove(app)}
+        />
       )}
 
       <ApplicationDialog

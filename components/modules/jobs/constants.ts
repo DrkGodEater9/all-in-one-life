@@ -46,3 +46,39 @@ export const PORTAL_STATUS_TONE: Record<PortalStatus, BadgeTone> = {
   cuenta_creada: "warning",
   perfil_completo: "success",
 };
+
+// ── Kanban de postulaciones ───────────────────────────────────────────────
+/** Las tres columnas del tablero; cada una agrupa varios estados detallados. */
+export const KANBAN_COLUMNS = ["en_curso", "pasaste", "no_pasaste"] as const;
+export type KanbanColumn = (typeof KANBAN_COLUMNS)[number];
+
+export const KANBAN_COLUMN_LABEL: Record<KanbanColumn, string> = {
+  en_curso: "En curso",
+  pasaste: "Pasaste",
+  no_pasaste: "No pasaste",
+};
+
+export const KANBAN_COLUMN_EMPTY: Record<KanbanColumn, string> = {
+  en_curso: "Sin postulaciones en proceso",
+  pasaste: "Aquí van las ofertas",
+  no_pasaste: "Rechazos y sin respuesta",
+};
+
+export const KANBAN_COLUMN_COLOR: Record<KanbanColumn, string> = {
+  en_curso: "var(--color-accent)",
+  pasaste: "var(--color-success)",
+  no_pasaste: "var(--color-danger)",
+};
+
+export function statusColumn(status: ApplicationStatus): KanbanColumn {
+  if (status === "oferta") return "pasaste";
+  if (status === "rechazado" || status === "sin_respuesta") return "no_pasaste";
+  return "en_curso";
+}
+
+/** Estado que toma una postulación al soltarla en una columna distinta. */
+export const COLUMN_DROP_STATUS: Record<KanbanColumn, ApplicationStatus> = {
+  en_curso: "en_revision",
+  pasaste: "oferta",
+  no_pasaste: "rechazado",
+};
