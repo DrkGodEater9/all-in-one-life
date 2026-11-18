@@ -23,6 +23,13 @@ export function register(tool) {
   );
 
   tool(
+    "list_task_days",
+    "Calendario: tareas con fecha en un rango (las que aparecen en el calendario), incluidas las hechas.",
+    { from: DATE.optional(), to: DATE.optional() },
+    (args) => call("GET", `/calendar/task-days${qs(args)}`)
+  );
+
+  tool(
     "add_event",
     "Calendario: crea un evento. Con recurrence genera la serie completa.",
     {

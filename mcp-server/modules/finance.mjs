@@ -1,4 +1,4 @@
-import { z, call, qs, clean, today, DATE, ID } from "../lib.mjs";
+import { z, call, qs, clean, today, download, DATE, ID } from "../lib.mjs";
 
 const SOURCE = z.enum(["daily", "savings"]).describe("daily = diario, savings = ahorros");
 const CATEGORY = z.enum([
@@ -71,6 +71,23 @@ export function register(tool) {
     { month: z.string().regex(/^\d{4}-\d{2}$/).optional().describe("YYYY-MM"), source: SOURCE.optional() },
     async ({ month, source }) =>
       call("GET", `/finance/summary/monthly${qs({ month, sourceId: source ? await sourceId(source) : undefined })}`)
+  );
+
+  tool(
+    "export_transactions_xlsx",
+    "Finanzas: descarga un Excel con las transacciones (mismos filtros que list_transactions) a la carpeta de Descargas del usuario y devuelve la ruta del archivo.",
+    {
+      type: z.enum(["expense", "income"]).optional(),
+      category: z.string().optional(),
+      source: SOURCE.optional(),
+      from: DATE.optional(),
+      to: DATE.optional(),
+    },
+    async ({ source, ...rest }) =>
+      download(
+        `/finance/export/xlsx${qs({ ...rest, sourceId: source ? await sourceId(source) : undefined })}`,
+        "transacciones.xlsx"
+      )
   );
 
   // ── Deudas ───────────────────────────────────────────────────────────────
@@ -186,6 +203,13 @@ export function register(tool) {
     },
     ({ creditLineId, date, ...rest }) =>
       call("POST", `/finance/credit-lines/${creditLineId}/movements`, { ...rest, date: date ?? today() })
+  );
+
+  tool(
+    "export_credit_line_xlsx",
+    "Finanzas: descarga un Excel con los movimientos de una línea de crédito a la carpeta de Descargas y devuelve la ruta.",
+    { id: ID },
+    ({ id }) => download(`/finance/credit-lines/${id}/export`, `credito-${id}.xlsx`)
   );
 
   tool(

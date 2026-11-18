@@ -31,6 +31,13 @@ export function register(tool) {
   );
 
   tool(
+    "task_matrix",
+    "Tareas: las tareas abiertas agrupadas por cuadrante de la matriz de Eisenhower (do, schedule, delegate, eliminate).",
+    {},
+    () => call("GET", "/tasks/matrix")
+  );
+
+  tool(
     "add_task",
     "Tareas: crea una tarea. Usa quadrant o bien urgent/important. Las etiquetas que no existan se crean.",
     {

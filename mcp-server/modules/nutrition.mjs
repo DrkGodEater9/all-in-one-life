@@ -3,6 +3,21 @@ import { z, call, qs, today, DATE, ID } from "../lib.mjs";
 const MEAL = z.enum(["breakfast", "lunch", "dinner", "snack"]).describe("breakfast, lunch, dinner o snack");
 const STATE = z.enum(["raw", "cooked", "unknown"]).describe("Estado del alimento al pesarlo");
 const PER100 = z.number().min(0).max(10000);
+const INGREDIENT = z.object({
+  foodName: z.string().optional(),
+  favoriteId: ID.optional(),
+  foodCacheId: ID.optional(),
+  amountG: z.number().positive().max(10000),
+  kcal100g: PER100.optional(),
+  protein100g: PER100.optional(),
+  carbs100g: PER100.optional(),
+  fat100g: PER100.optional(),
+  state: STATE.optional(),
+  quantity: z.number().positive().optional(),
+  unit: z.string().optional(),
+  costCop: z.number().int().min(0).optional(),
+  store: z.string().optional(),
+});
 
 export function register(tool) {
   tool(
@@ -74,27 +89,68 @@ export function register(tool) {
       storage: z.string().optional(),
       fridgeDays: z.number().int().min(0).max(30).optional(),
       tips: z.array(z.string()).optional(),
-      items: z
-        .array(
-          z.object({
-            foodName: z.string().optional(),
-            favoriteId: ID.optional(),
-            foodCacheId: ID.optional(),
-            amountG: z.number().positive().max(10000),
-            kcal100g: PER100.optional(),
-            protein100g: PER100.optional(),
-            carbs100g: PER100.optional(),
-            fat100g: PER100.optional(),
-            state: STATE.optional(),
-            quantity: z.number().positive().optional(),
-            unit: z.string().optional(),
-            costCop: z.number().int().min(0).optional(),
-            store: z.string().optional(),
-          })
-        )
-        .min(1),
+      items: z.array(INGREDIENT).min(1),
     },
     (args) => call("POST", "/nutrition/recipes", args)
+  );
+
+  tool(
+    "update_recipe",
+    "Nutrición: modifica una receta; solo se cambian los campos enviados y el resto (incluidos los ingredientes) se conserva. Si envías items, reemplazan TODOS los ingredientes.",
+    {
+      id: ID,
+      name: z.string().optional(),
+      mealType: MEAL.nullable().optional(),
+      groupName: z.string().nullable().optional(),
+      description: z.string().nullable().optional(),
+      servings: z.number().int().min(1).max(50).optional(),
+      prepMinutes: z.number().int().min(0).max(600).nullable().optional(),
+      steps: z.array(z.object({ text: z.string(), minutes: z.number().int().min(0).optional() })).optional(),
+      storage: z.string().nullable().optional(),
+      fridgeDays: z.number().int().min(0).max(30).nullable().optional(),
+      tips: z.array(z.string()).optional(),
+      items: z.array(INGREDIENT).min(1).optional(),
+    },
+    async ({ id, ...patch }) => {
+      // La API reemplaza la receta entera (PUT): se lee la actual, se mezcla y se reenvía.
+      const recipes = await call("GET", "/nutrition/recipes");
+      const cur = recipes.find((r) => r.id === id);
+      if (!cur) throw new Error("404 Receta no encontrada");
+
+      const r2 = (v) => Math.round(v * 100) / 100;
+      const per100 = (macro, grams) => (grams > 0 ? r2(Math.min((macro / grams) * 100, 10000)) : 0);
+      const body = {
+        name: cur.name,
+        mealType: cur.mealType,
+        groupName: cur.groupName,
+        description: cur.description,
+        servings: cur.servings,
+        prepMinutes: cur.prepMinutes,
+        steps: cur.steps,
+        storage: cur.storage,
+        fridgeDays: cur.fridgeDays,
+        tips: cur.tips,
+        // Si la receta tiene macros declarados, se conservan.
+        ...(cur.macrosDeclared ? { macros: cur.totals } : {}),
+        // Los ingredientes se reenvían como manuales conservando su flag de estimado.
+        items: cur.items.map((i) => ({
+          foodName: i.foodName,
+          amountG: i.amountG,
+          state: i.state,
+          kcal100g: per100(i.kcal, i.amountG),
+          protein100g: per100(i.proteinG, i.amountG),
+          carbs100g: per100(i.carbsG, i.amountG),
+          fat100g: per100(i.fatG, i.amountG),
+          estimated: i.isEstimated,
+          quantity: i.quantity,
+          unit: i.unit,
+          costCop: i.costCop,
+          store: i.store,
+        })),
+      };
+      for (const [k, v] of Object.entries(patch)) if (v !== undefined) body[k] = v;
+      return call("PUT", `/nutrition/recipes/${id}`, body);
+    }
   );
 
   tool(

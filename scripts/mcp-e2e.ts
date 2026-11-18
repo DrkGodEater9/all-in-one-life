@@ -12,10 +12,14 @@
  * apunte a la misma base que DATABASE_URL.
  */
 import crypto from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { prismaAdmin as db } from "../lib/db";
 import { Client } from "../mcp-server/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../mcp-server/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
 
+const DL = mkdtempSync(path.join(tmpdir(), "mcp-e2e-"));
 const U = "mcp-test-user"; // usuario inventado: no toca datos reales
 const URL = "https://all-in-one-life.vercel.app";
 let fails = 0, passes = 0;
@@ -46,7 +50,7 @@ async function cleanup() {
   await cleanup();
   const token = "pos_" + crypto.randomBytes(32).toString("base64url");
   await db.apiToken.create({ data: { userId: U, name: "mcp-test", tokenHash: crypto.createHash("sha256").update(token).digest("hex") } });
-  const transport = new StdioClientTransport({ command: "node", args: ["mcp-server/index.mjs"], env: { ...process.env, POS_URL: URL, POS_TOKEN: token } as Record<string, string> });
+  const transport = new StdioClientTransport({ command: "node", args: ["mcp-server/index.mjs"], env: { ...process.env, POS_URL: URL, POS_TOKEN: token, POS_DOWNLOAD_DIR: DL } as Record<string, string> });
   const client = new Client({ name: "e2e", version: "1" });
   await client.connect(transport);
 
@@ -62,7 +66,7 @@ async function cleanup() {
 
   try {
     const tools = (await client.listTools()).tools.map((x) => x.name);
-    ok(tools.length >= 100, "herramientas: " + tools.length);
+    ok(tools.length >= 110, "herramientas: " + tools.length);
 
     // ── Empleo ──
     let r = await t("add_application", { company: "ZZ", position: "Dev" }); good(r, "add_application");
@@ -86,6 +90,10 @@ async function cleanup() {
     const lab = await t("add_task_label", { name: "zz-otra", color: "#ff0000" }); good(lab, "add_task_label");
     good(await t("delete_task_label", { id: lab.id }), "delete_task_label");
     good(await t("delete_task", { id: task.id }), "delete_task");
+    const mtask = await t("add_task", { title: "ZZ matriz", quadrant: "schedule", date: TODAY });
+    const mx = await t("task_matrix"); ok(Array.isArray(mx.schedule) && mx.schedule.some((x: any) => x.id === mtask.id), "task_matrix agrupa por cuadrante");
+    ok((await t("list_task_days", { from: TODAY, to: TODAY })).some((x: any) => x.id === mtask.id), "list_task_days");
+    await t("delete_task", { id: mtask.id });
 
     // ── Calendario ──
     const ev = await t("add_event", { title: "ZZ evento", date: TODAY, time: "15:30", category: "work", location: "Oficina", reminders: [{ remindType: "same_day", remindTime: "08:00" }] });
@@ -125,6 +133,10 @@ async function cleanup() {
     good(await t("get_credit_line", { id: cl.id }), "get_credit_line");
     good(await t("update_credit_line", { id: cl.id, name: "ZZ banco 2" }), "update_credit_line");
     ok((await t("list_credit_lines")).length === 1, "list_credit_lines");
+    const dl = await t("export_credit_line_xlsx", { id: cl.id }); good(dl, "export_credit_line_xlsx");
+    ok(dl.bytes > 1000 && readFileSync(dl.savedTo).subarray(0, 2).toString() === "PK", "el Excel del crédito es un .xlsx válido (zip)");
+    const dx = await t("export_transactions_xlsx", { source: "savings" }); good(dx, "export_transactions_xlsx");
+    ok(dx.bytes > 1000 && readFileSync(dx.savedTo).subarray(0, 2).toString() === "PK", "el Excel de transacciones es un .xlsx válido (zip)");
     good(await t("delete_credit_movement", { creditLineId: cl.id, movementId: mv.id }), "delete_credit_movement");
     good(await t("delete_credit_line", { id: cl.id }), "delete_credit_line");
 
@@ -160,6 +172,12 @@ async function cleanup() {
     const recipe = await t("create_recipe", { name: "ZZ receta", mealType: "lunch", servings: 2, items: [{ foodName: "ZZ pollo", amountG: 150, kcal100g: 165, protein100g: 31, carbs100g: 0, fat100g: 3.6 }], steps: [{ text: "cocinar", minutes: 10 }] }); good(recipe, "create_recipe");
     ok((await t("list_recipes")).some((x: any) => x.id === recipe.id), "list_recipes");
     good(await t("log_recipe", { recipeId: recipe.id, mealType: "dinner", servings: 1 }), "log_recipe");
+    const ur = await t("update_recipe", { id: recipe.id, name: "ZZ receta v2", tips: ["sal"] }); good(ur, "update_recipe parcial");
+    ok(ur.name === "ZZ receta v2" && ur.items.length === 1 && ur.items[0].foodName === "ZZ pollo", "update_recipe conserva ingredientes");
+    ok(Math.abs(ur.items[0].kcal - 247.5) < 0.6 && ur.servings === 2 && ur.steps.length === 1, "update_recipe conserva macros, porciones y pasos");
+    const ur2 = await t("update_recipe", { id: recipe.id, items: [{ foodName: "ZZ huevo", amountG: 100, kcal100g: 155, protein100g: 13, carbs100g: 1, fat100g: 11 }] });
+    ok(ur2.items.length === 1 && ur2.items[0].foodName === "ZZ huevo", "update_recipe reemplaza ingredientes si se envían");
+    ok((await t("update_recipe", { id: 999999, name: "x" })).__err !== undefined, "update_recipe id inexistente da error");
     good(await t("add_water", { amountMl: 500 }), "add_water");
     ok(JSON.stringify(await t("get_water")).includes("500"), "get_water");
     good(await t("add_weight", { weightKg: 70.5 }), "add_weight");
@@ -214,6 +232,7 @@ async function cleanup() {
     console.error("ERROR:", e); fails++;
   } finally {
     await cleanup();
+    rmSync(DL, { recursive: true, force: true });
     const left = (await db.task.count({ where: { userId: U } })) + (await db.apiToken.count({ where: { userId: U } })) + (await db.financeSource.count({ where: { userId: U } }));
     console.log(`\nPASARON ${passes} | FALLARON ${fails} | filas de prueba sobrantes: ${left}`);
     await db.$disconnect();

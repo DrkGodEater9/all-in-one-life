@@ -4,6 +4,9 @@
  * herramientas con manejo de errores uniforme.
  */
 import { z } from "zod";
+import { mkdir, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import path from "node:path";
 
 export { z };
 
@@ -40,6 +43,33 @@ export async function call(method, path, body) {
     throw new Error(`${res.status} ${data?.error ?? res.statusText}${detail}`);
   }
   return data;
+}
+
+/**
+ * Descarga un archivo binario de la API (p. ej. un Excel) a la carpeta de
+ * descargas (POS_DOWNLOAD_DIR, por defecto ~/Downloads) y devuelve la ruta.
+ */
+export async function download(apiPath, fallbackName) {
+  const res = await fetch(`${BASE}/api${apiPath}`, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      detail = (await res.json())?.error ?? detail;
+    } catch {
+      /* respuesta sin JSON */
+    }
+    throw new Error(`${res.status} ${detail}`);
+  }
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const named = /filename="?([^";]+)"?/i.exec(disposition)?.[1];
+  // basename: la API no debería mandar rutas, pero el nombre sale de un header externo.
+  const filename = path.basename(named || fallbackName);
+  const dir = process.env.POS_DOWNLOAD_DIR || path.join(homedir(), "Downloads");
+  await mkdir(dir, { recursive: true });
+  const target = path.join(dir, filename);
+  const bytes = Buffer.from(await res.arrayBuffer());
+  await writeFile(target, bytes);
+  return { savedTo: target, bytes: bytes.length };
 }
 
 /** "?a=1&b=2" omitiendo undefined/null/"" (vacío si no queda nada). */
