@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- script de prueba: las respuestas de la API son JSON arbitrario */
 /**
  * Prueba de punta a punta del servidor MCP contra la app desplegada.
  *
@@ -50,7 +51,7 @@ async function cleanup() {
   await client.connect(transport);
 
   // t(): llama una herramienta; devuelve JSON o { __err }
-  const t = async (name: string, args: object = {}): Promise<any> => {
+  const t = async (name: string, args: Record<string, unknown> = {}): Promise<any> => {
     const res = (await client.callTool({ name, arguments: args })) as { isError?: boolean; content: { text: string }[] };
     const text = res.content[0].text;
     if (res.isError) { console.log("   (error en " + name + "): " + text.slice(0, 200)); return { __err: text }; }
