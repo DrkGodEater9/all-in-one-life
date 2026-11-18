@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  Briefcase,
   Calendar,
   CircleCheck,
   Dumbbell,
@@ -36,6 +37,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/projects", label: "Proyectos", icon: Lightbulb },
   { href: "/blog", label: "Blog", icon: NotebookPen },
   { href: "/concepts", label: "Conceptos", icon: BookOpen },
+  { href: "/jobs", label: "Empleo", icon: Briefcase },
 ];
 
 export const SETTINGS_ITEM: NavItem = {

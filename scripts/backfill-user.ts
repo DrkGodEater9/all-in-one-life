@@ -21,7 +21,7 @@ const TABLES = [
   "NutritionFavorite", "NutritionMealLog", "NutritionRecipe", "NutritionGoal",
   "NutritionWeightLog", "NutritionWaterLog", "NutritionProduct", "GymRoutine",
   "GymMeasurement", "CalendarEvent", "TaskLabel", "Task", "ProjectCategory",
-  "Project", "ProjectTag", "BlogPost", "Concept",
+  "Project", "ProjectTag", "BlogPost", "Concept", "JobPortal", "JobApplication",
 ];
 
 async function main() {

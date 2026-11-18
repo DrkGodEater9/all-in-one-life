@@ -58,6 +58,8 @@ const ROOT_MODELS = new Set([
   "ProjectTag",
   "BlogPost",
   "Concept",
+  "JobPortal",
+  "JobApplication",
 ]);
 
 type Where = Record<string, unknown>;

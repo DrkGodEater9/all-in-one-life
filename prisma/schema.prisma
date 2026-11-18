@@ -619,3 +619,40 @@ model NutritionProduct {
 
   @@index([userId])
 }
+
+// ── Empleo ────────────────────────────────────────────────────────────────
+/// Portal de trabajo donde tienes (o quieres tener) cuenta y perfil.
+/// No guarda contraseñas: solo el correo/usuario con el que te registraste.
+model JobPortal {
+  id        Int      @id @default(autoincrement())
+  /// Dueño de la fila (auth.users.id de Supabase). Lo rellena lib/db.ts solo.
+  userId    String   @default("")
+  name      String
+  url       String?
+  account   String?  // correo o usuario con el que te registraste
+  status    String   @default("pendiente") // 'pendiente' | 'cuenta_creada' | 'perfil_completo'
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/// Una postulación: empresa, cargo, por dónde te postulaste y en qué va.
+model JobApplication {
+  id        Int       @id @default(autoincrement())
+  userId    String    @default("")
+  company   String
+  position  String
+  url       String?
+  source    String?   // dónde te postulaste (LinkedIn, un portal, referido…)
+  status    String    @default("postulado")
+  // 'postulado' | 'en_revision' | 'entrevista' | 'prueba' | 'oferta' | 'rechazado' | 'sin_respuesta'
+  appliedAt DateTime  @db.Date
+  salary    String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
